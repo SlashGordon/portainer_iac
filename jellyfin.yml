@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    networks:
+      - cloudflare
+    volumes:
+      - /var/lib/docker/volumes/infra_volume/_data/jellyfin_config:/config
+      - /var/lib/docker/volumes/infra_volume/_data/jellyfin_cache:/cache
+      - /mnt/media/video:/media
+    ports:
+      - "8096:8096"
+
+networks:
+  cloudflare:
+    external: true

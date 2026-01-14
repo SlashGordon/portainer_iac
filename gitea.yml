@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    restart: always
+    networks: [cloudflare]
+    ports:
+      - "3000:3000"
+      - "2222:2222"
+    volumes:
+      - /var/lib/docker/volumes/infra_volume/_data/gitea_data:/data
+
+  runner:
+    image: gitea/act_runner:latest
+    container_name: gitea-runner
+    restart: always
+    depends_on: [gitea]
+    networks: [cloudflare]
+    environment:
+      GITEA_RUNNER_NAME: ${GITEA_RUNNER_NAME}
+      CONFIG_FILE: ${CONFIG_FILE}
+      GITEA_INSTANCE_URL: ${GITEA_INSTANCE_URL}
+      GITEA_RUNNER_TOKEN: ${GITEA_RUNNER_TOKEN}
+    volumes:
+      - /var/lib/docker/volumes/infra_volume/_data/runner_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    configs:
+      - source: act_runner_config
+        target: /data/config.yaml
+
+networks:
+  cloudflare:
+    external: true
+
+configs:
+  act_runner_config:
+    content: |
+      log:
+        level: info
+
+      runner:
+        file: .runner
+        capacity: 4
+        timeout: 3h
+        labels:
+          - "ubuntu-latest:docker://docker.gitea.com/runner-images:ubuntu-latest"
+
+      container:
+        network: cloudflare
+        valid_volumes:
+            - "howtolosemoney-content-dev"
+            - "howtolosemoney-content-prd"
+            - "gitea-build-data"
+            - "portfoliomanager-content-dev"
+            - "portfoliomanager-content-prd"

@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  nas-manager-runner:
+    build:
+      context: ./nas-manager
+    image: diecklabs/nas-manager:latest
+    container_name: nas-manager-runner
+    network_mode: host
+    environment:
+      - CF_AUTH_TOKEN=${CF_AUTH_TOKEN}
+      - ZONE_ID=${ZONE_ID}
+      - RULESET_ID=${RULESET_ID}
+      - RULE_ID_PATCH=${RULE_ID_PATCH}
+      - RULE_ID_MULTI=${RULE_ID_MULTI}
+      - DESCRIPTION_PATCH=${DESCRIPTION_PATCH}
+      - DESCRIPTION_MULTI=${DESCRIPTION_MULTI}
+      - EXPRESSION_PATCH=${EXPRESSION_PATCH}
+      - EXPRESSION_MULTI=${EXPRESSION_MULTI}
+      - SCHEDULE_PATCH=${SCHEDULE_PATCH:-0 2 * * *}
+      - SCHEDULE_MULTI=${SCHEDULE_MULTI:-0 3 * * *}
+    labels:
+      - ofelia.enabled=true
+      # Job 1: Update rule (PATCH)
+      - ofelia.job-exec.update_patch.schedule=${SCHEDULE_PATCH:-0 2 * * *}
+      - ofelia.job-exec.update_patch.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_PATCH" --action=block --description="$DESCRIPTION_PATCH" --enabled=true --expression="$EXPRESSION_PATCH"'
+      # Job 2: Update rule (multi-host)
+      - ofelia.job-exec.update_multi.schedule=${SCHEDULE_MULTI:-0 3 * * *}
+      - ofelia.job-exec.update_multi.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_MULTI" --action=block --description="$DESCRIPTION_MULTI" --enabled=true --expression="$EXPRESSION_MULTI"'
+    restart: unless-stopped
+
+  ofelia:
+    image: mcuadros/ofelia:latest
+    container_name: ofelia
+    depends_on:
+      - nas-manager-runner
+    command: ["daemon", "--docker"]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped

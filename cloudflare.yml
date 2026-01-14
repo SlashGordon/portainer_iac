@@ -1,0 +1,19 @@
+version: "3.9"
+
+services:
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflare-tunnel
+    restart: always
+    depends_on:
+      - gitea
+      - jellyfin
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN}
+    networks:
+      - cloudflare
+
+networks:
+  cloudflare:
+    external: true

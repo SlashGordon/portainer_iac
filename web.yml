@@ -1,0 +1,102 @@
+version: "3.8"
+
+services:
+  traefik:
+    image: traefik:v3.6.6
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--entrypoints.web.address=:80"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--accesslog=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - cloudflare
+      - apps
+
+  portfoliomanager-web-dev:
+    image: nginx:alpine
+    container_name: portfoliomanagerdev
+    restart: unless-stopped
+    volumes:
+      - portfoliomanager-content-dev:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.portfoliomanager-dev.rule=Host(`portfolio-dev.dieck-labs.de`)"
+      - "traefik.http.routers.portfoliomanager-dev.entrypoints=web"
+      - "traefik.http.services.portfoliomanager-dev.loadbalancer.server.port=80"
+
+  howtolosemoneyfast-web-dev:
+    image: nginx:alpine
+    container_name: moneywebdev
+    restart: unless-stopped
+    volumes:
+      - howtolosemoney-content-dev:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.howtolosemoney-dev.rule=Host(`money-dev.dieck-labs.de`)"
+      - "traefik.http.routers.howtolosemoney-dev.entrypoints=web"
+      - "traefik.http.services.howtolosemoney-dev.loadbalancer.server.port=80"
+
+  howtolosemoneyfast-web-prd:
+    image: nginx:alpine
+    container_name: moneywebprd
+    restart: unless-stopped
+    volumes:
+      - howtolosemoney-content-prd:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.howtolosemoney-prd.rule=Host(`www.howtolosemoneyfast.com`)"
+      - "traefik.http.routers.howtolosemoney-prd.entrypoints=web"
+      - "traefik.http.services.howtolosemoney-prd.loadbalancer.server.port=80"
+
+  gitea-build-data-explorer:
+    image: gitea-build-data-explorer-nginx:local
+    build:
+      context: ./nginx
+    container_name: giteabuildexplorer
+    restart: unless-stopped
+    volumes:
+      - gitea-build-data:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.gitea-explorer.rule=Host(`data.dieck-labs.de`)"
+      - "traefik.http.routers.gitea-explorer.entrypoints=web"
+      - "traefik.http.routers.gitea-explorer.middlewares=json-headers@docker"
+      - "traefik.http.services.gitea-explorer.loadbalancer.server.port=80"
+
+      # Middleware: add caching + nosniff for JSON responses (works without nginx.conf)
+      - "traefik.http.middlewares.json-headers.headers.customResponseHeaders.Cache-Control=public, max-age=300"
+      - "traefik.http.middlewares.json-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
+
+networks:
+  cloudflare:
+    external: true
+  apps:
+    driver: bridge
+
+volumes:
+  howtolosemoney-content-dev:
+    external: true
+  howtolosemoney-content-prd:
+    external: true
+  portfoliomanager-content-dev:
+    external: true
+  portfoliomanager-content-prd:
+    external: true
+  gitea-build-data:
+    external: true

@@ -17,16 +17,18 @@ services:
       - DESCRIPTION_MULTI=${DESCRIPTION_MULTI}
       - EXPRESSION_PATCH=${EXPRESSION_PATCH}
       - EXPRESSION_MULTI=${EXPRESSION_MULTI}
+      - EXPRESSION_PATCH_B64=${EXPRESSION_PATCH_B64}
+      - EXPRESSION_MULTI_B64=${EXPRESSION_MULTI_B64}
       - SCHEDULE_PATCH=${SCHEDULE_PATCH:-0 2 * * *}
       - SCHEDULE_MULTI=${SCHEDULE_MULTI:-0 3 * * *}
     labels:
       - ofelia.enabled=true
       # Job 1: Update rule (PATCH)
       - ofelia.job-exec.update_patch.schedule=${SCHEDULE_PATCH:-0 2 * * *}
-      - ofelia.job-exec.update_patch.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_PATCH" --action=block --description="$DESCRIPTION_PATCH" --enabled=true --expression="$EXPRESSION_PATCH"'
+      - ofelia.job-exec.update_patch.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_PATCH" --action=block --description="$DESCRIPTION_PATCH" --enabled=true --expression="`printf %s "$EXPRESSION_PATCH_B64" | base64 -d`"'
       # Job 2: Update rule (multi-host)
       - ofelia.job-exec.update_multi.schedule=${SCHEDULE_MULTI:-0 3 * * *}
-      - ofelia.job-exec.update_multi.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_MULTI" --action=block --description="$DESCRIPTION_MULTI" --enabled=true --expression="$EXPRESSION_MULTI"'
+      - ofelia.job-exec.update_multi.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_MULTI" --action=block --description="$DESCRIPTION_MULTI" --enabled=true --expression="`printf %s "$EXPRESSION_MULTI_B64" | base64 -d`"'
     restart: unless-stopped
 
   ofelia:

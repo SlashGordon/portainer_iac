@@ -1,0 +1,91 @@
+[
+  {
+    "id": "fritzbox-dyndns-update",
+    "execute-command": "/scripts/fritzbox-dyndns-update.sh",
+    "command-working-directory": "/scripts",
+    "response-message": "good",
+    "include-command-output-in-response": false,
+    "pass-arguments-to-command": [
+      {
+        "source": "url",
+        "name": "ipaddr"
+      },
+      {
+        "source": "url",
+        "name": "ip6addr"
+      },
+      {
+        "source": "url",
+        "name": "domain"
+      },
+      {
+        "source": "url",
+        "name": "username"
+      },
+      {
+        "source": "url",
+        "name": "pass"
+      },
+      {
+        "source": "url",
+        "name": "ip6lanprefix"
+      },
+      {
+        "source": "url",
+        "name": "dualstack"
+      }
+    ],
+    "pass-environment-to-command": [
+      {
+        "source": "url",
+        "name": "ipaddr",
+        "envname": "DYNDNS_IPV4"
+      },
+      {
+        "source": "url",
+        "name": "ip6addr",
+        "envname": "DYNDNS_IPV6"
+      },
+      {
+        "source": "url",
+        "name": "domain",
+        "envname": "DYNDNS_DOMAIN"
+      },
+      {
+        "source": "url",
+        "name": "username",
+        "envname": "DYNDNS_USERNAME"
+      },
+      {
+        "source": "url",
+        "name": "pass",
+        "envname": "DYNDNS_PASSWORD"
+      },
+      {
+        "source": "url",
+        "name": "ip6lanprefix",
+        "envname": "DYNDNS_IP6LANPREFIX"
+      },
+      {
+        "source": "url",
+        "name": "dualstack",
+        "envname": "DYNDNS_DUALSTACK"
+      }
+    ],
+    "trigger-rule": {
+      "and": [
+        {
+          "match": {
+            "type": "value",
+            "value": "",
+            "parameter": {
+              "source": "url",
+              "name": "domain"
+            }
+          },
+          "not": {}
+        }
+      ]
+    }
+  }
+]

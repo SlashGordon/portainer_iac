@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ARG NAS_MANAGER_VERSION=v1.0.7
+ARG NAS_MANAGER_VERSION=v1.0.8
 ARG WEBHOOK_VERSION=2.8.1
 
 RUN apt-get update \

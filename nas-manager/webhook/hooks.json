@@ -3,6 +3,18 @@
     "id": "fritzbox-dyndns-update",
     "execute-command": "/scripts/fritzbox-dyndns-update.sh",
     "command-working-directory": "/scripts",
-    "response-message": "good"
+    "response-message": "DynDNS update triggered",
+    "pass-environment-to-command": [
+      {
+        "envname": "ip",
+        "source": "url",
+        "name": "ip"
+      },
+      {
+        "envname": "ip6",
+        "source": "url",
+        "name": "ip6"
+      }
+    ]
   }
 ]

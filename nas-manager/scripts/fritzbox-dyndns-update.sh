@@ -14,6 +14,11 @@ log() {
 
 log "FritzBox DynDNS webhook triggered"
 
+# IP addresses from FritzBox webhook URL parameters
+IPV4="${ip:-}"
+IPV6="${ip6:-}"
+log "Received IPv4: $IPV4, IPv6: $IPV6"
+
 # Update Cloudflare security rules using nas-manager
 if [ -z "$CF_AUTH_TOKEN" ] || [ -z "$ZONE_ID" ]; then
     log "ERROR: CF_AUTH_TOKEN or ZONE_ID not set"
@@ -34,6 +39,8 @@ if [ -n "$RULE_ID_PATCH" ] && [ -n "$RULESET_ID" ]; then
         --description="$DESCRIPTION_PATCH" \
         --enabled=true \
         --skip-unchanged=false \
+        --ip="$IPV4" \
+        --ipv6="$IPV6" \
         --expression="$EXPRESSION" && log "PATCH rule updated" || log "ERROR: PATCH rule failed"
 fi
 
@@ -49,6 +56,8 @@ if [ -n "$RULE_ID_MULTI" ] && [ -n "$RULESET_ID" ]; then
         --description="$DESCRIPTION_MULTI" \
         --enabled=true \
         --skip-unchanged=false \
+        --ip="$IPV4" \
+        --ipv6="$IPV6" \
         --expression="$EXPRESSION" && log "MULTI rule updated" || log "ERROR: MULTI rule failed"
 fi
 

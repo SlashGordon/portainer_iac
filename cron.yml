@@ -30,6 +30,8 @@ services:
       - ofelia.job-exec.update_multi.schedule=${SCHEDULE_MULTI:-0 3 * * *}
       - ofelia.job-exec.update_multi.command=/bin/sh -lc 'nas-manager security cloudflare --zone-id="$ZONE_ID" --ruleset-id="$RULESET_ID" --rule-id="$RULE_ID_MULTI" --action=block --description="$DESCRIPTION_MULTI" --enabled=true --expression="`printf %s "$EXPRESSION_MULTI_B64" | base64 -d`"'
     restart: unless-stopped
+    ports:
+      - "9000:9000"
 
   ofelia:
     image: mcuadros/ofelia:latest

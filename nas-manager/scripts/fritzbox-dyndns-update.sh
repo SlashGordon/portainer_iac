@@ -86,24 +86,49 @@ if [ -x "$CUSTOM_SCRIPT" ]; then
     "$CUSTOM_SCRIPT"
 fi
 
-# Update Cloudflare DNS using nas-manager (if CF_API_TOKEN is set)
-if [ -n "$CF_API_TOKEN" ] && [ -n "$CF_ZONE_ID" ]; then
-    log "Cloudflare integration enabled - updating DNS records via nas-manager..."
+# Update Cloudflare security rules using nas-manager (if CF_AUTH_TOKEN is set)
+if [ -n "$CF_AUTH_TOKEN" ] && [ -n "$ZONE_ID" ]; then
+    log "Cloudflare integration enabled - updating security rules via nas-manager..."
     
-    # Set CF_RECORD_NAME to the domain if not already set
-    export CF_RECORD_NAME="${CF_RECORD_NAME:-$DOMAIN}"
+    # Export as CF_API_TOKEN for nas-manager compatibility
+    export CF_API_TOKEN="${CF_AUTH_TOKEN}"
     
-    # Run nas-manager ddns update
-    if nas-manager ddns update; then
-        log "Successfully updated Cloudflare DNS for $CF_RECORD_NAME via nas-manager"
-    else
-        log "ERROR: Failed to update Cloudflare DNS via nas-manager"
-        exit 1
+    # Update Rule 1: PATCH rule (block all traffic but not ipv6 network)
+    if [ -n "$RULE_ID_PATCH" ] && [ -n "$RULESET_ID" ]; then
+        EXPRESSION_PATCH_DECODED=$(printf '%s' "$EXPRESSION_PATCH_B64" | base64 -d)
+        log "Updating PATCH rule: $DESCRIPTION_PATCH"
+        if nas-manager security cloudflare \
+            --zone-id="$ZONE_ID" \
+            --ruleset-id="$RULESET_ID" \
+            --rule-id="$RULE_ID_PATCH" \
+            --action=block \
+            --description="$DESCRIPTION_PATCH" \
+            --enabled=true \
+            --expression="$EXPRESSION_PATCH_DECODED"; then
+            log "Successfully updated PATCH rule"
+        else
+            log "ERROR: Failed to update PATCH rule"
+        fi
+    fi
+    
+    # Update Rule 2: MULTI rule (allow only my IPv6 network for specific hosts)
+    if [ -n "$RULE_ID_MULTI" ] && [ -n "$RULESET_ID" ]; then
+        EXPRESSION_MULTI_DECODED=$(printf '%s' "$EXPRESSION_MULTI_B64" | base64 -d)
+        log "Updating MULTI rule: $DESCRIPTION_MULTI"
+        if nas-manager security cloudflare \
+            --zone-id="$ZONE_ID" \
+            --ruleset-id="$RULESET_ID" \
+            --rule-id="$RULE_ID_MULTI" \
+            --action=block \
+            --description="$DESCRIPTION_MULTI" \
+            --enabled=true \
+            --expression="$EXPRESSION_MULTI_DECODED"; then
+            log "Successfully updated MULTI rule"
+        else
+            log "ERROR: Failed to update MULTI rule"
+        fi
     fi
 fi
-
-log "DynDNS update completed successfully for $DOMAIN"
-exit 0
 
 log "DynDNS update completed successfully for $DOMAIN"
 exit 0

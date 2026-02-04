@@ -6,11 +6,22 @@ services:
       context: ./nas-manager
     image: diecklabs/nas-manager:latest
     container_name: nas-manager-hooks
+    environment:
+      CF_AUTH_TOKEN: ${CF_AUTH_TOKEN}
+      ZONE_ID: ${ZONE_ID}
+      RULESET_ID: ${RULESET_ID}
+      RULE_ID_PATCH: ${RULE_ID_PATCH}
+      RULE_ID_MULTI: ${RULE_ID_MULTI}
+      DESCRIPTION_PATCH: ${DESCRIPTION_PATCH}
+      DESCRIPTION_MULTI: ${DESCRIPTION_MULTI}
+      EXPRESSION_PATCH_B64: ${EXPRESSION_PATCH_B64}
+      EXPRESSION_MULTI_B64: ${EXPRESSION_MULTI_B64}
     ports:
       - "9000:9000"
     volumes:
       - dyndns-data:/var/lib/dyndns
     restart: unless-stopped
+    network_mode: host
 
 volumes:
   dyndns-data:

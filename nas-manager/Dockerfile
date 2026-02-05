@@ -1,6 +1,6 @@
 FROM debian:bookworm-slim
 
-ARG NAS_MANAGER_VERSION=v1.0.11
+ARG NAS_MANAGER_VERSION=v1.0.13
 ARG WEBHOOK_VERSION=2.8.1
 
 RUN apt-get update \
@@ -42,5 +42,6 @@ RUN mkdir -p /var/lib/dyndns /var/log
 # Expose webhook port
 EXPOSE 9000
 
-# Start webhook server
-ENTRYPOINT ["webhook", "-hooks", "/etc/webhook/hooks.json", "-verbose"]
+# Entrypoint wrapper reads secrets into env vars, then starts webhook
+ENTRYPOINT ["/scripts/docker-entrypoint.sh"]
+CMD ["webhook", "-hooks", "/etc/webhook/hooks.json", "-verbose"]

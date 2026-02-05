@@ -41,8 +41,6 @@ if [ -n "$RULE_ID_PATCH" ] && [ -n "$RULESET_ID" ]; then
         --description="$DESCRIPTION_PATCH" \
         --enabled=true \
         --skip-unchanged=false \
-        --ip="$IPV4" \
-        --ipv6-prefix="$IPV6_PREFIX" \
         --expression="$EXPRESSION" && log "PATCH rule updated" || log "ERROR: PATCH rule failed"
 fi
 
@@ -58,8 +56,6 @@ if [ -n "$RULE_ID_MULTI" ] && [ -n "$RULESET_ID" ]; then
         --description="$DESCRIPTION_MULTI" \
         --enabled=true \
         --skip-unchanged=false \
-        --ip="$IPV4" \
-        --ipv6-prefix="$IPV6_PREFIX" \
         --expression="$EXPRESSION" && log "MULTI rule updated" || log "ERROR: MULTI rule failed"
 fi
 

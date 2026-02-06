@@ -1,0 +1,52 @@
+services:
+  vaultwarden:
+    build:
+      context: ./vaultwarden
+    image: diecklabs/vaultwarden:latest
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: "https://vault.dieck-labs.de"
+      WEBSOCKET_ENABLED: true
+      SIGNUPS_ALLOWED: false
+      ADMIN_TOKEN_FILE: /run/secrets/admin_token
+      # SMTP2GO Configuration
+      SMTP_HOST_FILE: /run/secrets/smtp_host
+      SMTP_PORT: 587
+      SMTP_SECURITY: starttls
+      SMTP_FROM_FILE: /run/secrets/smtp_from
+      SMTP_FROM_NAME: Vaultwarden
+      SMTP_USERNAME_FILE: /run/secrets/smtp_username
+      SMTP_PASSWORD_FILE: /run/secrets/smtp_password
+    volumes:
+      - vaultwarden-content:/data/
+    ports:
+      - "3231:80"
+    secrets:
+      - admin_token
+      - smtp_host
+      - smtp_from
+      - smtp_username
+      - smtp_password
+    networks:
+      - cloudflare
+
+secrets:
+  admin_token:
+    file: /data/compose/secrets/vaultwarden/admin_token
+  smtp_host:
+    file: /data/compose/secrets/vaultwarden/smtp_host
+  smtp_from:
+    file: /data/compose/secrets/vaultwarden/smtp_from
+  smtp_username:
+    file: /data/compose/secrets/vaultwarden/smtp_username
+  smtp_password:
+    file: /data/compose/secrets/vaultwarden/smtp_password
+
+volumes:
+  vaultwarden-content:
+    external: true
+
+networks:
+  cloudflare:
+    external: true

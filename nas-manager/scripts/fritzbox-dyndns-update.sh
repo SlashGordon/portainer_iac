@@ -1,11 +1,11 @@
 #!/bin/sh
 # FritzBox DynDNS Webhook Handler
-# Triggered by FritzBox on IP change - updates Cloudflare security rules via nas-manager
+# Triggered by FritzBox on IP change - updates Cloudflare Zero Trust policy via nas-manager
 # nas-manager fetches current public IPs externally
 #
 # Required environment variables:
-#   CF_AUTH_TOKEN, ZONE_ID, RULESET_ID, RULE_ID_PATCH, RULE_ID_MULTI,
-#   EXPRESSION_PATCH_B64, EXPRESSION_MULTI_B64, DESCRIPTION_PATCH, DESCRIPTION_MULTI
+#   CF_AUTH_TOKEN, CF_ACCOUNT_ID, CF_POLICY_ID
+#   NAS_MANAGER_PUBLIC_IP_PROVIDERS (optional, defaults to fritzbox-soap)
 
 LOG_FILE="/var/log/dyndns-update.log"
 log() {
@@ -21,43 +21,37 @@ IPV6_PREFIX="${prefix:-}"
 DUALSTACK="${dual:-}"
 log "Received IPv4: $IPV4, IPv6: $IPV6, Prefix: $IPV6_PREFIX, Dualstack: $DUALSTACK"
 
-# Update Cloudflare security rules using nas-manager
-if [ -z "$CF_AUTH_TOKEN" ] || [ -z "$ZONE_ID" ]; then
-    log "ERROR: CF_AUTH_TOKEN or ZONE_ID not set"
+# Validate required environment variables
+if [ -z "$CF_AUTH_TOKEN" ]; then
+    log "ERROR: CF_AUTH_TOKEN not set"
     exit 1
 fi
 
-export CF_API_TOKEN="${CF_AUTH_TOKEN}"
-
-# Update PATCH rule
-if [ -n "$RULE_ID_PATCH" ] && [ -n "$RULESET_ID" ]; then
-    EXPRESSION=$(printf '%s' "$EXPRESSION_PATCH_B64" | base64 -d)
-    log "Updating PATCH rule: $DESCRIPTION_PATCH"
-    nas-manager security cloudflare \
-        --zone-id="$ZONE_ID" \
-        --ruleset-id="$RULESET_ID" \
-        --rule-id="$RULE_ID_PATCH" \
-        --action=block \
-        --description="$DESCRIPTION_PATCH" \
-        --enabled=true \
-        --skip-unchanged=false \
-        --expression="$EXPRESSION" && log "PATCH rule updated" || log "ERROR: PATCH rule failed"
+if [ -z "$CF_ACCOUNT_ID" ]; then
+    log "ERROR: CF_ACCOUNT_ID not set"
+    exit 1
 fi
 
-# Update MULTI rule
-if [ -n "$RULE_ID_MULTI" ] && [ -n "$RULESET_ID" ]; then
-    EXPRESSION=$(printf '%s' "$EXPRESSION_MULTI_B64" | base64 -d)
-    log "Updating MULTI rule: $DESCRIPTION_MULTI"
-    nas-manager security cloudflare \
-        --zone-id="$ZONE_ID" \
-        --ruleset-id="$RULESET_ID" \
-        --rule-id="$RULE_ID_MULTI" \
-        --action=block \
-        --description="$DESCRIPTION_MULTI" \
-        --enabled=true \
-        --skip-unchanged=false \
-        --expression="$EXPRESSION" && log "MULTI rule updated" || log "ERROR: MULTI rule failed"
+if [ -z "$CF_POLICY_ID" ]; then
+    log "ERROR: CF_POLICY_ID not set"
+    exit 1
 fi
+
+# Set defaults
+NAS_MANAGER_PUBLIC_IP_PROVIDERS="${NAS_MANAGER_PUBLIC_IP_PROVIDERS:-fritzbox-soap}"
+
+log "Updating Cloudflare Zero Trust policy..."
+
+# Update Zero Trust policy with current IPs
+nas-manager security cloudflare zerotrust-policy \
+    --account-id="$CF_ACCOUNT_ID" \
+    --policy-id="$CF_POLICY_ID" \
+    --reusable \
+    --include-ip="{{PUBLIC_IPV4}}" \
+    --include-ip="{{PUBLIC_IPV6_NETWORK/64}}" \
+    --decision=bypass \
+    && log "Zero Trust policy updated successfully" \
+    || { log "ERROR: Zero Trust policy update failed"; exit 1; }
 
 log "DynDNS update completed"
 exit 0

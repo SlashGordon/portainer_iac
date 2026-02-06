@@ -10,35 +10,15 @@ services:
       - dyndns-data:/var/lib/dyndns
     secrets:
       - cf_auth_token
-      - zone_id
-      - ruleset_id
-      - rule_id_patch
-      - rule_id_multi
-      - description_patch
-      - description_multi
-      - expression_patch
-      - expression_patch_b64
-      - expression_multi
-      - expression_multi_b64
-      - schedule_patch
-      - schedule_multi
+      - cf_account_id
+      - cf_policy_id
       - nas_manager_public_ip_providers
       - nas_manager_fritzbox_wanipconn_url
       - nas_manager_fritzbox_timeout
     environment:
       CF_AUTH_TOKEN_FILE: /run/secrets/cf_auth_token
-      ZONE_ID_FILE: /run/secrets/zone_id
-      RULESET_ID_FILE: /run/secrets/ruleset_id
-      RULE_ID_PATCH_FILE: /run/secrets/rule_id_patch
-      RULE_ID_MULTI_FILE: /run/secrets/rule_id_multi
-      DESCRIPTION_PATCH_FILE: /run/secrets/description_patch
-      DESCRIPTION_MULTI_FILE: /run/secrets/description_multi
-      EXPRESSION_PATCH_FILE: /run/secrets/expression_patch
-      EXPRESSION_PATCH_B64_FILE: /run/secrets/expression_patch_b64
-      EXPRESSION_MULTI_FILE: /run/secrets/expression_multi
-      EXPRESSION_MULTI_B64_FILE: /run/secrets/expression_multi_b64
-      SCHEDULE_PATCH_FILE: /run/secrets/schedule_patch
-      SCHEDULE_MULTI_FILE: /run/secrets/schedule_multi
+      CF_ACCOUNT_ID_FILE: /run/secrets/cf_account_id
+      CF_POLICY_ID_FILE: /run/secrets/cf_policy_id
       NAS_MANAGER_PUBLIC_IP_PROVIDERS_FILE: /run/secrets/nas_manager_public_ip_providers
       NAS_MANAGER_FRITZBOX_WANIPCONN_URL_FILE: /run/secrets/nas_manager_fritzbox_wanipconn_url
       NAS_MANAGER_FRITZBOX_TIMEOUT_FILE: /run/secrets/nas_manager_fritzbox_timeout
@@ -48,30 +28,10 @@ services:
 secrets:
   cf_auth_token:
     file: /data/compose/secrets/hooks/cf_auth_token
-  zone_id:
-    file: /data/compose/secrets/hooks/zone_id
-  ruleset_id:
-    file: /data/compose/secrets/hooks/ruleset_id
-  rule_id_patch:
-    file: /data/compose/secrets/hooks/rule_id_patch
-  rule_id_multi:
-    file: /data/compose/secrets/hooks/rule_id_multi
-  description_patch:
-    file: /data/compose/secrets/hooks/description_patch
-  description_multi:
-    file: /data/compose/secrets/hooks/description_multi
-  expression_patch:
-    file: /data/compose/secrets/hooks/expression_patch
-  expression_patch_b64:
-    file: /data/compose/secrets/hooks/expression_patch_b64
-  expression_multi:
-    file: /data/compose/secrets/hooks/expression_multi
-  expression_multi_b64:
-    file: /data/compose/secrets/hooks/expression_multi_b64
-  schedule_patch:
-    file: /data/compose/secrets/hooks/schedule_patch
-  schedule_multi:
-    file: /data/compose/secrets/hooks/schedule_multi
+  cf_account_id:
+    file: /data/compose/secrets/hooks/cf_account_id
+  cf_policy_id:
+    file: /data/compose/secrets/hooks/cf_policy_id
   nas_manager_public_ip_providers:
     file: /data/compose/secrets/hooks/nas_manager_public_ip_providers
   nas_manager_fritzbox_wanipconn_url:

@@ -6,7 +6,6 @@ services:
       context: ./nas-manager
     image: diecklabs/nas-manager:latest
     container_name: nas-manager-runner
-    network_mode: host
     environment:
       - CF_AUTH_TOKEN=${CF_AUTH_TOKEN}
       - ZONE_ID=${ZONE_ID}

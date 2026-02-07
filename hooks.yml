@@ -6,6 +6,8 @@ services:
       context: ./nas-manager
     image: diecklabs/nas-manager:latest
     container_name: nas-manager-hooks
+    ports:
+      - "9000:9000"
     volumes:
       - dyndns-data:/var/lib/dyndns
     secrets:
@@ -23,7 +25,6 @@ services:
       NAS_MANAGER_FRITZBOX_WANIPCONN_URL_FILE: /run/secrets/nas_manager_fritzbox_wanipconn_url
       NAS_MANAGER_FRITZBOX_TIMEOUT_FILE: /run/secrets/nas_manager_fritzbox_timeout
     restart: unless-stopped
-    network_mode: host
 
 secrets:
   cf_auth_token:

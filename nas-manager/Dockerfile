@@ -4,10 +4,14 @@ ARG NAS_MANAGER_VERSION=v1.0.14
 ARG WEBHOOK_VERSION=2.8.1
 
 RUN apt-get update \
+	&& apt-get upgrade -y \
 	&& apt-get install -y --no-install-recommends \
 		ca-certificates curl tar xz-utils tzdata sudo jq \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& update-ca-certificates
+
+# Create non-root user
+RUN useradd -r -u 1000 -m appuser
 
 # Quick install nas-manager via official script
 RUN curl -fsSL "https://raw.githubusercontent.com/SlashGordon/nas-manager/main/install.sh" -o /tmp/nas-manager-install.sh \
@@ -36,8 +40,12 @@ COPY webhook/hooks.json /etc/webhook/hooks.json
 COPY scripts/ /scripts/
 RUN chmod +x /scripts/*.sh
 
-# Create directories for DynDNS state
-RUN mkdir -p /var/lib/dyndns /var/log
+# Create directories for DynDNS state and set permissions
+RUN mkdir -p /var/lib/dyndns /var/log \
+	&& chown -R appuser:appuser /var/lib/dyndns /var/log /scripts
+
+# Switch to non-root user
+USER appuser
 
 # Expose webhook port
 EXPOSE 9000

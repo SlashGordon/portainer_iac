@@ -25,6 +25,12 @@ services:
       NAS_MANAGER_FRITZBOX_WANIPCONN_URL_FILE: /run/secrets/nas_manager_fritzbox_wanipconn_url
       NAS_MANAGER_FRITZBOX_TIMEOUT_FILE: /run/secrets/nas_manager_fritzbox_timeout
     restart: unless-stopped
+    networks:
+      - ipv6network
+
+networks:
+  ipv6network:
+    external: true
 
 secrets:
   cf_auth_token:

@@ -46,6 +46,16 @@ services:
       - "traefik.http.routers.howtolosemoney-dev.entrypoints=web"
       - "traefik.http.services.howtolosemoney-dev.loadbalancer.server.port=80"
 
+      # No-cache for frequently updated pages
+      - "traefik.http.routers.howtolosemoney-dev-history.rule=Host(`money-dev.dieck-labs.de`) && (PathPrefix(`/lotto6aus49`) || PathPrefix(`/eurojackpot`) || PathRegexp(`^/(de|es)/(lotto6aus49|eurojackpot)(/|$)`))"
+      - "traefik.http.routers.howtolosemoney-dev-history.entrypoints=web"
+      - "traefik.http.routers.howtolosemoney-dev-history.priority=100"
+      - "traefik.http.routers.howtolosemoney-dev-history.middlewares=money-no-cache-dev@docker"
+      - "traefik.http.routers.howtolosemoney-dev-history.service=howtolosemoney-dev"
+      - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Cache-Control=no-store, no-cache, must-revalidate, max-age=0"
+      - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Pragma=no-cache"
+      - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Expires=0"
+
   howtolosemoneyfast-web-prd:
     image: nginx:alpine
     container_name: moneywebprd
@@ -60,6 +70,16 @@ services:
       - "traefik.http.routers.howtolosemoney-prd.rule=Host(`www.howtolosemoneyfast.com`)"
       - "traefik.http.routers.howtolosemoney-prd.entrypoints=web"
       - "traefik.http.services.howtolosemoney-prd.loadbalancer.server.port=80"
+
+      # No-cache for frequently updated pages
+      - "traefik.http.routers.howtolosemoney-prd-history.rule=Host(`www.howtolosemoneyfast.com`) && (PathPrefix(`/lotto6aus49`) || PathPrefix(`/eurojackpot`) || PathRegexp(`^/(de|es)/(lotto6aus49|eurojackpot)(/|$)`))"
+      - "traefik.http.routers.howtolosemoney-prd-history.entrypoints=web"
+      - "traefik.http.routers.howtolosemoney-prd-history.priority=100"
+      - "traefik.http.routers.howtolosemoney-prd-history.middlewares=money-no-cache-prd@docker"
+      - "traefik.http.routers.howtolosemoney-prd-history.service=howtolosemoney-prd"
+      - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Cache-Control=no-store, no-cache, must-revalidate, max-age=0"
+      - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Pragma=no-cache"
+      - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Expires=0"
 
   gitea-build-data-explorer:
     image: gitea-build-data-explorer-nginx:local

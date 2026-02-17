@@ -10,8 +10,15 @@ for var in $(env | grep '_FILE=' | cut -d= -f1); do
   var_name="${var%_FILE}"
   
   if [[ -f "$file_path" ]]; then
-    # Read the secret file and export as env var
-    export "$var_name"="$(cat "$file_path")"
+    if [[ -r "$file_path" ]]; then
+      # Read the secret file and export as env var
+      export "$var_name"="$(cat "$file_path")"
+      echo "[entrypoint] Loaded $var_name from $file_path"
+    else
+      echo "[entrypoint] ERROR: Cannot read $file_path (permission denied)" >&2
+    fi
+  else
+    echo "[entrypoint] WARNING: Secret file not found: $file_path" >&2
   fi
 done
 

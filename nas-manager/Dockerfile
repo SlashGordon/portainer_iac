@@ -1,23 +1,16 @@
 FROM debian:bookworm-slim
 
-ARG NAS_MANAGER_VERSION=v1.0.14
-ARG WEBHOOK_VERSION=2.8.1
+ARG WEBHOOK_VERSION=2.8.3
 
 RUN apt-get update \
 	&& apt-get upgrade -y \
 	&& apt-get install -y --no-install-recommends \
-		ca-certificates curl tar xz-utils tzdata sudo jq \
+		ca-certificates curl tar tzdata python3 \
 	&& rm -rf /var/lib/apt/lists/* \
 	&& update-ca-certificates
 
 # Create non-root user
 RUN useradd -r -u 1000 -m appuser
-
-# Quick install nas-manager via official script
-RUN curl -fsSL "https://raw.githubusercontent.com/SlashGordon/nas-manager/main/install.sh" -o /tmp/nas-manager-install.sh \
-	&& sh /tmp/nas-manager-install.sh "$NAS_MANAGER_VERSION" \
-	&& rm -f /tmp/nas-manager-install.sh \
-	&& nas-manager --version
 
 # Install adnanh/webhook
 RUN ARCH=$(uname -m) \
@@ -38,7 +31,7 @@ RUN ARCH=$(uname -m) \
 # Copy webhook configuration and scripts
 COPY webhook/hooks.json /etc/webhook/hooks.json
 COPY scripts/ /scripts/
-RUN chmod +x /scripts/*.sh
+RUN chmod +x /scripts/*
 
 # Create directories for DynDNS state and set permissions
 RUN mkdir -p /var/lib/dyndns /var/log \

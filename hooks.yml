@@ -11,19 +11,22 @@ services:
     volumes:
       - dyndns-data:/var/lib/dyndns
     secrets:
-      - cf_auth_token
-      - cf_account_id
-      - cf_policy_id
-      - nas_manager_public_ip_providers
-      - nas_manager_fritzbox_wanipconn_url
-      - nas_manager_fritzbox_timeout
+      - source: cf_auth_token
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: cf_account_id
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
+      - source: cf_policy_id
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
     environment:
       CF_AUTH_TOKEN_FILE: /run/secrets/cf_auth_token
       CF_ACCOUNT_ID_FILE: /run/secrets/cf_account_id
       CF_POLICY_ID_FILE: /run/secrets/cf_policy_id
-      NAS_MANAGER_PUBLIC_IP_PROVIDERS_FILE: /run/secrets/nas_manager_public_ip_providers
-      NAS_MANAGER_FRITZBOX_WANIPCONN_URL_FILE: /run/secrets/nas_manager_fritzbox_wanipconn_url
-      NAS_MANAGER_FRITZBOX_TIMEOUT_FILE: /run/secrets/nas_manager_fritzbox_timeout
     restart: unless-stopped
     networks:
       - ipv6network
@@ -39,12 +42,6 @@ secrets:
     file: /data/compose/secrets/hooks/cf_account_id
   cf_policy_id:
     file: /data/compose/secrets/hooks/cf_policy_id
-  nas_manager_public_ip_providers:
-    file: /data/compose/secrets/hooks/nas_manager_public_ip_providers
-  nas_manager_fritzbox_wanipconn_url:
-    file: /data/compose/secrets/hooks/nas_manager_fritzbox_wanipconn_url
-  nas_manager_fritzbox_timeout:
-    file: /data/compose/secrets/hooks/nas_manager_fritzbox_timeout
 
 volumes:
   dyndns-data:

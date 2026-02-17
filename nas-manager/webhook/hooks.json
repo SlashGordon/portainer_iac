@@ -4,27 +4,6 @@
     "execute-command": "/scripts/fritzbox-dyndns-update.py",
     "command-working-directory": "/scripts",
     "response-message": "DynDNS update triggered",
-    "pass-environment-to-command": [
-      {
-        "envname": "ip",
-        "source": "url",
-        "name": "ip"
-      },
-      {
-        "envname": "ip6",
-        "source": "url",
-        "name": "ip6"
-      },
-      {
-        "envname": "prefix",
-        "source": "url",
-        "name": "prefix"
-      },
-      {
-        "envname": "dual",
-        "source": "url",
-        "name": "dual"
-      }
-    ]
+    "pass-environment-to-command": []
   }
 ]

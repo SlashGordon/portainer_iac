@@ -27,8 +27,7 @@ services:
     volumes:
       - /var/lib/docker/volumes/infra_volume/_data/runner_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./scripts/resolve-secrets.sh:/resolve-secrets.sh:ro
-    entrypoint: ["/resolve-secrets.sh", "/sbin/tini", "--", "run.sh"]
+    entrypoint: ["/bin/sh", "/resolve-secrets.sh", "/sbin/tini", "--", "run.sh"]
     secrets:
       - source: gitea_runner_token
         uid: "1000"
@@ -37,6 +36,9 @@ services:
     configs:
       - source: act_runner_config
         target: /data/config.yaml
+      - source: resolve_secrets_script
+        target: /resolve-secrets.sh
+        mode: 0555
 
 networks:
   cloudflare:
@@ -68,3 +70,5 @@ configs:
             - "portfoliomanager-content-dev"
             - "portfoliomanager-content-prd"
             - "blog-astro-content-prd"
+  resolve_secrets_script:
+    file: ./scripts/resolve-secrets.sh

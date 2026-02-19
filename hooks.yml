@@ -10,7 +10,10 @@ services:
       - "9000:9000"
     volumes:
       - dyndns-data:/var/lib/dyndns
-      - ./scripts/resolve-secrets.sh:/scripts/resolve-secrets.sh:ro
+    configs:
+      - source: resolve_secrets_script
+        target: /scripts/resolve-secrets.sh
+        mode: 0555
     secrets:
       - source: cf_auth_token
         uid: "1000"
@@ -46,3 +49,7 @@ secrets:
 
 volumes:
   dyndns-data:
+
+configs:
+  resolve_secrets_script:
+    file: ./scripts/resolve-secrets.sh

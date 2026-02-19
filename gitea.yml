@@ -20,7 +20,7 @@ services:
     networks: [cloudflare]
     environment:
       GITEA_RUNNER_NAME: CI-Runner
-      CONFIG_FILE: ${CONFIG_FILE}
+      CONFIG_FILE: /data/config.yaml
       GITEA_INSTANCE_URL: http://gitea:3000
       GITEA_RUNNER_TOKEN_FILE: /run/secrets/gitea_runner_token
       GITEA_RUNNER_LABELS: "prd,tst,docker,ubuntu-latest"

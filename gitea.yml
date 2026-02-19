@@ -23,7 +23,6 @@ services:
       CONFIG_FILE: /data/config.yaml
       GITEA_INSTANCE_URL: http://gitea:3000
       GITEA_RUNNER_TOKEN_FILE: /run/secrets/gitea_runner_token
-      GITEA_RUNNER_LABELS: "prd,tst,docker,ubuntu-latest"
     volumes:
       - /var/lib/docker/volumes/infra_volume/_data/runner_data:/data
       - /var/run/docker.sock:/var/run/docker.sock

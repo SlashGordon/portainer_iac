@@ -10,6 +10,24 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--accesslog=true"
+    labels:
+      - "traefik.enable=true"
+      # Redirect howtolosemoney.com -> www.howtolosemoneyfast.com
+      - "traefik.http.routers.money-bare-redirect.rule=Host(`howtolosemoney.com`) || Host(`www.howtolosemoney.com`) || Host(`howtolosemoneyfast.com`)"
+      - "traefik.http.routers.money-bare-redirect.entrypoints=web"
+      - "traefik.http.routers.money-bare-redirect.middlewares=money-redirect@docker"
+      - "traefik.http.routers.money-bare-redirect.service=noop@internal"
+      - "traefik.http.middlewares.money-redirect.redirectregex.regex=^http://[^/]+(.*)"
+      - "traefik.http.middlewares.money-redirect.redirectregex.replacement=https://www.howtolosemoneyfast.com$${1}"
+      - "traefik.http.middlewares.money-redirect.redirectregex.permanent=true"
+      # Redirect slashgordon.link -> www.slashgordon.link
+      - "traefik.http.routers.blog-bare-redirect.rule=Host(`slashgordon.link`)"
+      - "traefik.http.routers.blog-bare-redirect.entrypoints=web"
+      - "traefik.http.routers.blog-bare-redirect.middlewares=blog-redirect@docker"
+      - "traefik.http.routers.blog-bare-redirect.service=noop@internal"
+      - "traefik.http.middlewares.blog-redirect.redirectregex.regex=^http://slashgordon\\.link(.*)"
+      - "traefik.http.middlewares.blog-redirect.redirectregex.replacement=https://www.slashgordon.link$${1}"
+      - "traefik.http.middlewares.blog-redirect.redirectregex.permanent=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -103,6 +121,21 @@ services:
       - "traefik.http.middlewares.json-headers.headers.customResponseHeaders.Cache-Control=public, max-age=300"
       - "traefik.http.middlewares.json-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
 
+  blog-astro-web-prd:
+    image: nginx:alpine
+    container_name: blogastroprd
+    restart: unless-stopped
+    volumes:
+      - blog-astro-content-prd:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.blog-astro-prd.rule=Host(`www.slashgordon.link`)"
+      - "traefik.http.routers.blog-astro-prd.entrypoints=web"
+      - "traefik.http.services.blog-astro-prd.loadbalancer.server.port=80"
+
 networks:
   cloudflare:
     external: true
@@ -117,6 +150,8 @@ volumes:
   portfoliomanager-content-dev:
     external: true
   portfoliomanager-content-prd:
+    external: true
+  blog-astro-content-prd:
     external: true
   gitea-build-data:
     external: true

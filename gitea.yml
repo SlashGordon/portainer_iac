@@ -55,3 +55,4 @@ configs:
             - "gitea-build-data"
             - "portfoliomanager-content-dev"
             - "portfoliomanager-content-prd"
+            - "blog-astro-content-prd"

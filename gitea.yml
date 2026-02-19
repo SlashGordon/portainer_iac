@@ -71,4 +71,4 @@ configs:
             - "portfoliomanager-content-prd"
             - "blog-astro-content-prd"
   resolve_secrets_script:
-    file: ${INSTALL_PATH:-.}/scripts/resolve-secrets.sh
+    file: ./scripts/resolve-secrets.sh

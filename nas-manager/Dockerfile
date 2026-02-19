@@ -44,5 +44,5 @@ USER appuser
 EXPOSE 9000
 
 # Entrypoint wrapper reads secrets into env vars, then starts webhook
-ENTRYPOINT ["/scripts/docker-entrypoint.sh"]
+ENTRYPOINT ["/scripts/resolve-secrets.sh"]
 CMD ["webhook", "-hooks", "/etc/webhook/hooks.json", "-verbose"]

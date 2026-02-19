@@ -19,13 +19,21 @@ services:
     depends_on: [gitea]
     networks: [cloudflare]
     environment:
-      GITEA_RUNNER_NAME: ${GITEA_RUNNER_NAME}
+      GITEA_RUNNER_NAME: CI-Runner
       CONFIG_FILE: ${CONFIG_FILE}
-      GITEA_INSTANCE_URL: ${GITEA_INSTANCE_URL}
-      GITEA_RUNNER_TOKEN: ${GITEA_RUNNER_TOKEN}
+      GITEA_INSTANCE_URL: http://gitea:3000
+      GITEA_RUNNER_TOKEN_FILE: /run/secrets/gitea_runner_token
+      GITEA_RUNNER_LABELS: "prd,tst,docker,ubuntu-latest"
     volumes:
       - /var/lib/docker/volumes/infra_volume/_data/runner_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./scripts/resolve-secrets.sh:/resolve-secrets.sh:ro
+    entrypoint: ["/resolve-secrets.sh", "/sbin/tini", "--", "run.sh"]
+    secrets:
+      - source: gitea_runner_token
+        uid: "1000"
+        gid: "1000"
+        mode: 0400
     configs:
       - source: act_runner_config
         target: /data/config.yaml
@@ -33,6 +41,10 @@ services:
 networks:
   cloudflare:
     external: true
+
+secrets:
+  gitea_runner_token:
+    file: /data/compose/secrets/gitea/gitea_runner_token
 
 configs:
   act_runner_config:

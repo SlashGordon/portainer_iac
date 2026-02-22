@@ -21,14 +21,14 @@ services:
     image: grafana/loki:latest
     container_name: loki
     restart: unless-stopped
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yml
     volumes:
       - loki-data:/loki
     networks:
       - plg_net
     configs:
       - source: loki_config
-        target: /etc/loki/local-config.yaml
+        target: /etc/loki/local-config.yml
 
   promtail:
     image: grafana/promtail:latest
@@ -58,8 +58,8 @@ volumes:
 
 configs:
   promtail_config:
-    file: ./monitoring/promtail-config.yaml
+    file: ./monitoring/promtail-config.yml
   loki_config:
-    file: ./monitoring/loki-config.yaml
+    file: ./monitoring/loki-config.yml
   grafana_datasource_loki:
     file: ./monitoring/datasource/loki.yml

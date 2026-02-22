@@ -1,0 +1,65 @@
+services:
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      GF_INSTALL_PLUGINS: marcusolsson-dynamictext-panel,volkovlabs-echarts-panel
+      GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - cloudflare
+      - plg_net
+    depends_on:
+      - loki
+    configs:
+      - source: grafana_datasource_loki
+        target: /etc/grafana/provisioning/datasources/loki.yml
+
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+    networks:
+      - plg_net
+    configs:
+      - source: loki_config
+        target: /etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    restart: unless-stopped
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    networks:
+      - plg_net
+    depends_on:
+      - loki
+    configs:
+      - source: promtail_config
+        target: /etc/promtail/config.yml
+
+networks:
+  cloudflare:
+    external: true
+  plg_net:
+    driver: bridge
+
+volumes:
+  grafana-data:
+  loki-data:
+
+configs:
+  promtail_config:
+    file: ./monitoring/promtail-config.yaml
+  loki_config:
+    file: ./monitoring/loki-config.yaml
+  grafana_datasource_loki:
+    file: ./monitoring/datasource/loki.yml

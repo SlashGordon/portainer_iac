@@ -1,0 +1,30 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker_scrape
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.*)'
+        target_label: 'container'
+    
+    # Filter für die Container aus deinem Web-Stack
+    pipeline_stages:
+      - match:
+          selector: '{container=~"moneywebprd|moneywebdev|blogastroprd|portfoliomanagerdev|giteabuildexplorer"}'
+          stages:
+            - docker: {}
+            - regex:
+                expression: '^(?P<ip>[\w\.]+) - (?P<user>[^ ]*) \[(?P<timestamp>.*)\] "(?P<method>[A-Z]+) (?P<request>[^ ]*) (?P<protocol>[^"]*)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"?'
+            - labels:
+                status:
+                method:
+                request:
+                ip:

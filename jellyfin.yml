@@ -8,12 +8,18 @@ services:
     networks:
       - cloudflare
     volumes:
-      - /var/lib/docker/volumes/infra_volume/_data/jellyfin_config:/config
-      - /var/lib/docker/volumes/infra_volume/_data/jellyfin_cache:/cache
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
       - /mnt/media/video:/media/video:ro
     ports:
       - "8096:8096"
 
 networks:
   cloudflare:
+    external: true
+
+volumes:
+  jellyfin_config:
+    external: true
+  jellyfin_cache:
     external: true

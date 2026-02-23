@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   grafana:
     image: grafana/grafana:latest
@@ -17,9 +19,13 @@ services:
       - plg_net
     depends_on:
       - loki
+      - prometheus
     configs:
       - source: grafana_datasource_loki
         target: /etc/grafana/provisioning/datasources/loki.yml
+      # NEU: Prometheus als Datenquelle provisionieren
+      - source: grafana_datasource_prometheus
+        target: /etc/grafana/provisioning/datasources/prometheus.yml
       - source: resolve_secrets_script
         target: /scripts/resolve-secrets.sh
         mode: 0555
@@ -27,6 +33,7 @@ services:
       - grafana_admin_user
       - grafana_admin_password
       - grafana_admin_email
+
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -56,6 +63,23 @@ services:
       - source: promtail_config
         target: /etc/promtail/config.yml
 
+  # NEU: Prometheus Container
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d' # Hebt Daten für 15 Tage auf
+    volumes:
+      - prometheus-data:/prometheus
+    networks:
+      - plg_net
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+
 networks:
   cloudflare:
     external: true
@@ -65,6 +89,7 @@ networks:
 volumes:
   grafana-data:
   loki-data:
+  prometheus-data: # NEU
 
 secrets:
   grafana_admin_user:
@@ -83,3 +108,7 @@ configs:
     file: ./monitoring/datasource/loki.yml
   resolve_secrets_script:
     file: ./scripts/resolve-secrets.sh
+  prometheus_config:
+    file: ./monitoring/prometheus.yml
+  grafana_datasource_prometheus:
+    file: ./monitoring/datasource/prometheus.yml

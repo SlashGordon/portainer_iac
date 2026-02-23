@@ -3,9 +3,12 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
+    entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "/run.sh"]
     environment:
       GF_INSTALL_PLUGINS: marcusolsson-dynamictext-panel,volkovlabs-echarts-panel
       GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: false
+      GF_SECURITY_ADMIN_USER_FILE: /run/secrets/grafana_admin_user
+      GF_SECURITY_ADMIN_PASSWORD_FILE: /run/secrets/grafana_admin_password
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
@@ -16,6 +19,12 @@ services:
     configs:
       - source: grafana_datasource_loki
         target: /etc/grafana/provisioning/datasources/loki.yml
+      - source: resolve_secrets_script
+        target: /scripts/resolve-secrets.sh
+        mode: 0555
+    secrets:
+      - grafana_admin_user
+      - grafana_admin_password
 
   loki:
     image: grafana/loki:latest
@@ -56,6 +65,12 @@ volumes:
   grafana-data:
   loki-data:
 
+secrets:
+  grafana_admin_user:
+    file: /data/compose/secrets/grafana/grafana_admin_user
+  grafana_admin_password:
+    file: /data/compose/secrets/grafana/grafana_admin_password
+
 configs:
   promtail_config:
     file: ./monitoring/promtail-config.yml
@@ -63,3 +78,5 @@ configs:
     file: ./monitoring/loki-config.yml
   grafana_datasource_loki:
     file: ./monitoring/datasource/loki.yml
+  resolve_secrets_script:
+    file: ./scripts/resolve-secrets.sh

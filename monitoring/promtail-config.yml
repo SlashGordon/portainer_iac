@@ -35,6 +35,7 @@ scrape_configs:
                   http_user_agent: http_user_agent
                   http_x_forwarded_for: http_x_forwarded_for
                   http_host: http_host
+                  host: http_host
                   server_name: server_name
                   request_time: request_time
                   request_method: request_method
@@ -52,7 +53,7 @@ scrape_configs:
             - labels:
                 status:
                 request_method:
-                http_host:
+                host:
                 server_name:
                 scheme:
                 geoip_country_code:

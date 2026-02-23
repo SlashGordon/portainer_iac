@@ -26,6 +26,10 @@ services:
       # NEU: Prometheus als Datenquelle provisionieren
       - source: grafana_datasource_prometheus
         target: /etc/grafana/provisioning/datasources/prometheus.yml
+      - source: grafana_dashboard_provisioning
+        target: /etc/grafana/provisioning/dashboards/default.yml
+      - source: grafana_dashboard_nginx
+        target: /var/lib/grafana/dashboards/nginx.json
       - source: resolve_secrets_script
         target: /scripts/resolve-secrets.sh
         mode: 0555
@@ -112,3 +116,7 @@ configs:
     file: ./monitoring/prometheus.yml
   grafana_datasource_prometheus:
     file: ./monitoring/datasource/prometheus.yml
+  grafana_dashboard_provisioning:
+    file: ./monitoring/dashboard-provisioning.yml
+  grafana_dashboard_nginx:
+    file: ./monitoring/dashboard.json

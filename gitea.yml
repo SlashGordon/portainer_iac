@@ -10,7 +10,7 @@ services:
       - "3000:3000"
       - "2222:2222"
     volumes:
-      - /var/lib/docker/volumes/infra_volume/_data/gitea_data:/data
+      - gitea_data:/data
 
   runner:
     image: gitea/act_runner:latest
@@ -24,7 +24,7 @@ services:
       GITEA_INSTANCE_URL: http://gitea:3000
       GITEA_RUNNER_TOKEN_FILE: /run/secrets/gitea_runner_token
     volumes:
-      - /var/lib/docker/volumes/infra_volume/_data/runner_data:/data
+      - runner_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
     entrypoint: ["/bin/sh", "/resolve-secrets.sh", "/sbin/tini", "--", "run.sh"]
     secrets:
@@ -41,6 +41,12 @@ services:
 
 networks:
   cloudflare:
+    external: true
+
+volumes:
+  gitea_data:
+    external: true
+  runner_data:
     external: true
 
 secrets:

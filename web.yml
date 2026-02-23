@@ -1,21 +1,55 @@
 version: "3.8"
 
 services:
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "/docker_start.sh"]
+    environment:
+      COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios"
+      BOUNCER_KEY_traefik_FILE: /run/secrets/crowdsec_bouncer_key
+    volumes:
+      - crowdsec-config:/etc/crowdsec
+      - crowdsec-data:/var/lib/crowdsec/data
+      - traefik-access-logs:/var/log/traefik:ro
+    networks:
+      - apps
+    secrets:
+      - crowdsec_bouncer_key
+    configs:
+      - source: crowdsec_acquis
+        target: /etc/crowdsec/acquis.d/traefik.yml
+      - source: resolve_secrets_script
+        target: /scripts/resolve-secrets.sh
+        mode: 0555
+
   traefik:
     image: traefik:v3.6.6
     container_name: traefik
     restart: unless-stopped
+    depends_on:
+      - crowdsec
     command:
       - "--entrypoints.web.address=:80"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--accesslog=true"
+      - "--accesslog.filepath=/var/log/traefik/access.log"
+      - "--experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+      - "--experimental.plugins.crowdsec-bouncer.version=v1.4.1"
+    secrets:
+      - crowdsec_bouncer_key
     labels:
       - "traefik.enable=true"
+      # CrowdSec bouncer middleware
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdseclapihost=crowdsec:8080"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.crowdsecLapiKeyFile=/run/secrets/crowdsec_bouncer_key"
+      - "traefik.http.middlewares.crowdsec.plugin.crowdsec-bouncer.forwardedHeadersCustomName=CF-Connecting-IP"
       # Redirect howtolosemoney.com -> www.howtolosemoneyfast.com
       - "traefik.http.routers.money-bare-redirect.rule=Host(`howtolosemoney.com`) || Host(`www.howtolosemoney.com`) || Host(`howtolosemoneyfast.com`)"
       - "traefik.http.routers.money-bare-redirect.entrypoints=web"
-      - "traefik.http.routers.money-bare-redirect.middlewares=money-redirect@docker"
+      - "traefik.http.routers.money-bare-redirect.middlewares=crowdsec@docker,money-redirect@docker"
       - "traefik.http.routers.money-bare-redirect.service=noop@internal"
       - "traefik.http.middlewares.money-redirect.redirectregex.regex=^http://[^/]+(.*)"
       - "traefik.http.middlewares.money-redirect.redirectregex.replacement=https://www.howtolosemoneyfast.com$${1}"
@@ -23,13 +57,14 @@ services:
       # Redirect slashgordon.link -> www.slashgordon.link
       - "traefik.http.routers.blog-bare-redirect.rule=Host(`slashgordon.link`)"
       - "traefik.http.routers.blog-bare-redirect.entrypoints=web"
-      - "traefik.http.routers.blog-bare-redirect.middlewares=blog-redirect@docker"
+      - "traefik.http.routers.blog-bare-redirect.middlewares=crowdsec@docker,blog-redirect@docker"
       - "traefik.http.routers.blog-bare-redirect.service=noop@internal"
       - "traefik.http.middlewares.blog-redirect.redirectregex.regex=^http://slashgordon\\.link(.*)"
       - "traefik.http.middlewares.blog-redirect.redirectregex.replacement=https://www.slashgordon.link$${1}"
       - "traefik.http.middlewares.blog-redirect.redirectregex.permanent=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-access-logs:/var/log/traefik
     networks:
       - cloudflare
       - apps
@@ -50,6 +85,7 @@ services:
       - "traefik.docker.network=apps"
       - "traefik.http.routers.portfoliomanager-dev.rule=Host(`portfolio-dev.dieck-labs.de`)"
       - "traefik.http.routers.portfoliomanager-dev.entrypoints=web"
+      - "traefik.http.routers.portfoliomanager-dev.middlewares=crowdsec@docker"
       - "traefik.http.services.portfoliomanager-dev.loadbalancer.server.port=80"
 
   howtolosemoneyfast-web-dev:
@@ -68,13 +104,14 @@ services:
       - "traefik.docker.network=apps"
       - "traefik.http.routers.howtolosemoney-dev.rule=Host(`money-dev.dieck-labs.de`)"
       - "traefik.http.routers.howtolosemoney-dev.entrypoints=web"
+      - "traefik.http.routers.howtolosemoney-dev.middlewares=crowdsec@docker"
       - "traefik.http.services.howtolosemoney-dev.loadbalancer.server.port=80"
 
       # No-cache for frequently updated pages
       - "traefik.http.routers.howtolosemoney-dev-history.rule=Host(`money-dev.dieck-labs.de`) && (PathPrefix(`/lotto6aus49`) || PathPrefix(`/eurojackpot`) || PathRegexp(`^/(de|es)/(lotto6aus49|eurojackpot)(/|$)`))"
       - "traefik.http.routers.howtolosemoney-dev-history.entrypoints=web"
       - "traefik.http.routers.howtolosemoney-dev-history.priority=100"
-      - "traefik.http.routers.howtolosemoney-dev-history.middlewares=money-no-cache-dev@docker"
+      - "traefik.http.routers.howtolosemoney-dev-history.middlewares=crowdsec@docker,money-no-cache-dev@docker"
       - "traefik.http.routers.howtolosemoney-dev-history.service=howtolosemoney-dev"
       - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Cache-Control=no-store, no-cache, must-revalidate, max-age=0"
       - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Pragma=no-cache"
@@ -96,13 +133,14 @@ services:
       - "traefik.docker.network=apps"
       - "traefik.http.routers.howtolosemoney-prd.rule=Host(`www.howtolosemoneyfast.com`)"
       - "traefik.http.routers.howtolosemoney-prd.entrypoints=web"
+      - "traefik.http.routers.howtolosemoney-prd.middlewares=crowdsec@docker"
       - "traefik.http.services.howtolosemoney-prd.loadbalancer.server.port=80"
 
       # No-cache for frequently updated pages
       - "traefik.http.routers.howtolosemoney-prd-history.rule=Host(`www.howtolosemoneyfast.com`) && (PathPrefix(`/lotto6aus49`) || PathPrefix(`/eurojackpot`) || PathRegexp(`^/(de|es)/(lotto6aus49|eurojackpot)(/|$)`))"
       - "traefik.http.routers.howtolosemoney-prd-history.entrypoints=web"
       - "traefik.http.routers.howtolosemoney-prd-history.priority=100"
-      - "traefik.http.routers.howtolosemoney-prd-history.middlewares=money-no-cache-prd@docker"
+      - "traefik.http.routers.howtolosemoney-prd-history.middlewares=crowdsec@docker,money-no-cache-prd@docker"
       - "traefik.http.routers.howtolosemoney-prd-history.service=howtolosemoney-prd"
       - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Cache-Control=no-store, no-cache, must-revalidate, max-age=0"
       - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Pragma=no-cache"
@@ -126,7 +164,7 @@ services:
       - "traefik.docker.network=apps"
       - "traefik.http.routers.gitea-explorer.rule=Host(`data.dieck-labs.de`)"
       - "traefik.http.routers.gitea-explorer.entrypoints=web"
-      - "traefik.http.routers.gitea-explorer.middlewares=json-headers@docker"
+      - "traefik.http.routers.gitea-explorer.middlewares=crowdsec@docker,json-headers@docker"
       - "traefik.http.services.gitea-explorer.loadbalancer.server.port=80"
 
       # Middleware: add caching + nosniff for JSON responses (works without nginx.conf)
@@ -149,6 +187,7 @@ services:
       - "traefik.docker.network=apps"
       - "traefik.http.routers.blog-astro-prd.rule=Host(`www.slashgordon.link`)"
       - "traefik.http.routers.blog-astro-prd.entrypoints=web"
+      - "traefik.http.routers.blog-astro-prd.middlewares=crowdsec@docker"
       - "traefik.http.services.blog-astro-prd.loadbalancer.server.port=80"
 
 networks:
@@ -170,9 +209,20 @@ volumes:
     external: true
   gitea-build-data:
     external: true
+  crowdsec-config:
+  crowdsec-data:
+  traefik-access-logs:
+
+secrets:
+  crowdsec_bouncer_key:
+    file: /data/compose/secrets/crowdsec/crowdsec_bouncer_key
 
 configs:
   nginx_json_log:
     file: ./nginx/nginx-json-log.conf
   nginx_web_data:
     file: ./nginx/web_data.conf
+  resolve_secrets_script:
+    file: ./scripts/resolve-secrets.sh
+  crowdsec_acquis:
+    file: ./crowdsec/acquis.yml

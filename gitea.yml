@@ -10,7 +10,7 @@ services:
       - "3000:3000"
       - "2222:2222"
     volumes:
-      - gitea_data:/data
+      - /mnt/gitea:/data
 
   runner:
     image: gitea/act_runner:latest
@@ -44,8 +44,6 @@ networks:
     external: true
 
 volumes:
-  gitea_data:
-    external: true
   runner_data:
     external: true
 

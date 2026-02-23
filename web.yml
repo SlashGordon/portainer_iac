@@ -5,10 +5,9 @@ services:
     image: crowdsecurity/crowdsec:latest
     container_name: crowdsec
     restart: unless-stopped
-    entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "/docker_start.sh"]
+    entrypoint: ["/bin/sh", "-c", "export BOUNCER_KEY_traefik=$(cat /run/secrets/crowdsec_bouncer_key) && exec /docker_start.sh"]
     environment:
       COLLECTIONS: "crowdsecurity/traefik crowdsecurity/http-cve crowdsecurity/base-http-scenarios"
-      BOUNCER_KEY_traefik_FILE: /run/secrets/crowdsec_bouncer_key
     volumes:
       - crowdsec-config:/etc/crowdsec
       - crowdsec-data:/var/lib/crowdsec/data
@@ -20,9 +19,6 @@ services:
     configs:
       - source: crowdsec_acquis
         target: /etc/crowdsec/acquis.d/traefik.yml
-      - source: resolve_secrets_script
-        target: /scripts/resolve-secrets.sh
-        mode: 0555
 
   traefik:
     image: traefik:v3.6.6
@@ -222,7 +218,5 @@ configs:
     file: ./nginx/nginx-json-log.conf
   nginx_web_data:
     file: ./nginx/web_data.conf
-  resolve_secrets_script:
-    file: ./scripts/resolve-secrets.sh
   crowdsec_acquis:
     file: ./crowdsec/acquis.yml

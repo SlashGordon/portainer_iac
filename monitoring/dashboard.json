@@ -390,6 +390,7 @@
             },
             "location": {
               "gazetteer": "public/gazetteer/countries.json",
+              "lookup": "Field",
               "mode": "lookup"
             },
             "name": "Layer 0",

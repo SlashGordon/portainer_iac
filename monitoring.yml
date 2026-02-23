@@ -30,6 +30,8 @@ services:
         target: /etc/grafana/provisioning/dashboards/default.yml
       - source: grafana_dashboard_nginx
         target: /var/lib/grafana/dashboards/nginx.json
+      - source: grafana_dashboard_crowdsec
+        target: /var/lib/grafana/dashboards/crowdsec.json
       - source: resolve_secrets_script
         target: /scripts/resolve-secrets.sh
         mode: 0555
@@ -80,6 +82,7 @@ services:
       - prometheus-data:/prometheus
     networks:
       - plg_net
+      - monitoring_net
     configs:
       - source: prometheus_config
         target: /etc/prometheus/prometheus.yml
@@ -89,6 +92,8 @@ networks:
     external: true
   plg_net:
     driver: bridge
+  monitoring_net:
+    external: true
 
 volumes:
   grafana-data:
@@ -120,3 +125,5 @@ configs:
     file: ./monitoring/dashboard-provisioning.yml
   grafana_dashboard_nginx:
     file: ./monitoring/dashboard.json
+  grafana_dashboard_crowdsec:
+    file: ./monitoring/dashboard-crowdsec.json

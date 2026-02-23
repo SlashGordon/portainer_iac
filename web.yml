@@ -14,6 +14,7 @@ services:
       - traefik-access-logs:/var/log/traefik:ro
     networks:
       - apps
+      - monitoring_net
     secrets:
       - crowdsec_bouncer_key
     configs:
@@ -191,6 +192,8 @@ networks:
     external: true
   apps:
     driver: bridge
+  monitoring_net:
+    external: true
 
 volumes:
   howtolosemoney-content-dev:

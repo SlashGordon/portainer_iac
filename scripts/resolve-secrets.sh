@@ -3,7 +3,24 @@
 # For each *_FILE env var, reads the file content into the base variable.
 # Usage: resolve-secrets.sh <command> [args...]
 
+# Blocklist of variables to skip (won't be resolved from files)
+BLOCKLIST="CONFIG_FILE"
+
 for var in $(env | grep '_FILE=' | cut -d= -f1); do
+  # Check if variable is in blocklist
+  skip=0
+  for blocked in $BLOCKLIST; do
+    if [ "$var" = "$blocked" ]; then
+      skip=1
+      break
+    fi
+  done
+  
+  if [ $skip -eq 1 ]; then
+    echo "[entrypoint] Skipping blocklisted variable: $var"
+    continue
+  fi
+  
   base_var="${var%_FILE}"
   eval file_path="\$$var"
   if [ -f "$file_path" ]; then

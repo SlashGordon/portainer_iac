@@ -9,6 +9,7 @@ services:
       GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: false
       GF_SECURITY_ADMIN_USER_FILE: /run/secrets/grafana_admin_user
       GF_SECURITY_ADMIN_PASSWORD_FILE: /run/secrets/grafana_admin_password
+      GF_SECURITY_ADMIN_EMAIL_FILE: /run/secrets/grafana_admin_email
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
@@ -25,7 +26,7 @@ services:
     secrets:
       - grafana_admin_user
       - grafana_admin_password
-
+      - grafana_admin_email
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -70,6 +71,8 @@ secrets:
     file: /data/compose/secrets/grafana/grafana_admin_user
   grafana_admin_password:
     file: /data/compose/secrets/grafana/grafana_admin_password
+  grafana_admin_email:
+    file: /data/compose/secrets/grafana/grafana_admin_email
 
 configs:
   promtail_config:

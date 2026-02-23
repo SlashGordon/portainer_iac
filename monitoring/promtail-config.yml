@@ -14,17 +14,45 @@ scrape_configs:
       - source_labels: ['__meta_docker_container_name']
         regex: '/(.*)'
         target_label: 'container'
-    
-    # Filter für die Container aus deinem Web-Stack
+
     pipeline_stages:
+      # NGINX containers: parse JSON access logs
       - match:
           selector: '{container=~"moneywebprd|moneywebdev|blogastroprd|portfoliomanagerdev|giteabuildexplorer"}'
           stages:
             - docker: {}
-            - regex:
-                expression: '^(?P<ip>[\w\.]+) - (?P<user>[^ ]*) \[(?P<timestamp>.*)\] "(?P<method>[A-Z]+) (?P<request>[^ ]*) (?P<protocol>[^"]*)" (?P<status>\d+) (?P<body_bytes_sent>\d+) "(?P<http_referer>[^"]*)" "(?P<http_user_agent>[^"]*)"?'
+            - json:
+                expressions:
+                  remote_addr: remote_addr
+                  remote_user: remote_user
+                  time_local: time_local
+                  request: request
+                  request_uri: request_uri
+                  status: status
+                  body_bytes_sent: body_bytes_sent
+                  bytes_sent: bytes_sent
+                  http_referer: http_referer
+                  http_user_agent: http_user_agent
+                  http_x_forwarded_for: http_x_forwarded_for
+                  http_host: http_host
+                  server_name: server_name
+                  request_time: request_time
+                  request_method: request_method
+                  request_length: request_length
+                  upstream: upstream
+                  upstream_connect_time: upstream_connect_time
+                  upstream_header_time: upstream_header_time
+                  upstream_response_time: upstream_response_time
+                  upstream_response_length: upstream_response_length
+                  upstream_cache_status: upstream_cache_status
+                  scheme: scheme
+                  server_protocol: server_protocol
+                  geoip_country_code: geoip_country_code
+                  http_cf_ray: http_cf_ray
             - labels:
                 status:
-                method:
-                request:
-                ip:
+                request_method:
+                http_host:
+                server_name:
+                scheme:
+                geoip_country_code:

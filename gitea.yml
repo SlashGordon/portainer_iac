@@ -49,7 +49,7 @@ volumes:
 
 secrets:
   gitea_runner_token:
-    file: /data/compose/secrets/gitea/gitea_runner_token
+    file: ./secrets/secrets/gitea/runner_token
 
 configs:
   act_runner_config:

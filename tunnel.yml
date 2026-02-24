@@ -5,12 +5,16 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: cf-tunnel
     restart: always
-    command: tunnel --no-autoupdate run
-    environment:
-      TUNNEL_TOKEN: ${CF_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run --token-file /run/secrets/cf_tunnel_token
     networks:
       - cloudflare
+    secrets:
+      - cf_tunnel_token
 
 networks:
   cloudflare:
     external: true
+
+secrets:
+  cf_tunnel_token:
+    file: ./secrets/secrets/tunnel/token

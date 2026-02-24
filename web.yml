@@ -214,7 +214,7 @@ volumes:
 
 secrets:
   crowdsec_bouncer_key:
-    file: /data/compose/secrets/crowdsec/crowdsec_bouncer_key
+    file: ./secrets/secrets/crowdsec/bouncer_key
 
 configs:
   nginx_json_log:

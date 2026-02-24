@@ -10,3 +10,23 @@ scrape_configs:
   - job_name: 'crowdsec'
     static_configs:
       - targets: ['crowdsec:6060']
+
+  - job_name: 'proxmox'
+    metrics_path: /pve
+    static_configs:
+      - targets:
+        - 192.168.50.24
+    params:
+      module: [default]
+    relabel_configs:
+      # Step 1: Tell the exporter WHICH Proxmox server to query
+      - source_labels: [__address__]
+        target_label: __param_target
+      
+      # Step 2: Ensure the dashboard 'instance' label shows the Proxmox IP
+      - source_labels: [__param_target]
+        target_label: instance
+      
+      # Step 3: Redirect the scrape request to the pve-exporter container
+      - target_label: __address__
+        replacement: pve-exporter:9221

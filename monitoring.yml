@@ -69,7 +69,6 @@ services:
       - source: promtail_config
         target: /etc/promtail/config.yml
 
-  # NEU: Prometheus Container
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -77,15 +76,36 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=15d' # Hebt Daten für 15 Tage auf
+      - '--storage.tsdb.retention.time=15d'
     volumes:
       - prometheus-data:/prometheus
     networks:
       - plg_net
       - monitoring_net
+    depends_on:
+      - pve-exporter
     configs:
       - source: prometheus_config
         target: /etc/prometheus/prometheus.yml
+
+  pve-exporter:
+      image: prompve/prometheus-pve-exporter:latest
+      container_name: pve-exporter
+      restart: unless-stopped
+      environment:
+        PVE_USER_FILE: /run/secrets/pve_user
+        PVE_TOKEN_NAME_FILE: /run/secrets/pve_token_name
+        PVE_TOKEN_FILE: /run/secrets/pve_token_value
+      entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "python3", "pve_exporter.py", "/etc/prometheus/pve.yml"]
+      networks:
+        - plg_net
+      configs:
+        - source: pve_exporter_config
+          target: /etc/prometheus/pve.yml
+      secrets:
+        - pve_user
+        - pve_token_name
+        - pve_token_value
 
 networks:
   cloudflare:
@@ -98,15 +118,21 @@ networks:
 volumes:
   grafana-data:
   loki-data:
-  prometheus-data: # NEU
+  prometheus-data:
 
 secrets:
   grafana_admin_user:
-    file: /data/compose/secrets/grafana/grafana_admin_user
+    file: ./secrets/secrets/grafana/admin_user
   grafana_admin_password:
-    file: /data/compose/secrets/grafana/grafana_admin_password
+    file: ./secrets/secrets/grafana/admin_password
   grafana_admin_email:
-    file: /data/compose/secrets/grafana/grafana_admin_email
+    file: ./secrets/secrets/grafana/admin_email
+  pve_user:
+    file: ./secrets/secrets/monitoring/pve_user
+  pve_token_name:
+    file: ./secrets/secrets/monitoring/pve_token_name
+  pve_token_value:
+    file: ./secrets/secrets/monitoring/pve_token_value
 
 configs:
   promtail_config:
@@ -127,3 +153,5 @@ configs:
     file: ./monitoring/dashboard.json
   grafana_dashboard_crowdsec:
     file: ./monitoring/dashboard-crowdsec.json
+  pve_exporter_config:
+    file: ./monitoring/pve.yml

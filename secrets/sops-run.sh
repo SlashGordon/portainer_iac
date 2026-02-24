@@ -2,13 +2,24 @@
 
 # Configuration
 IMAGE_NAME="sops-manager-alpine"
-LOCAL_KEY_DIR="$HOME/.config/sops/age"
+
+# If called via sudo, keep using the invoking user's home + UID/GID.
+HOST_UID="${SUDO_UID:-$(id -u)}"
+HOST_GID="${SUDO_GID:-$(id -g)}"
+
+if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]]; then
+    LOCAL_HOME="$(eval echo "~${SUDO_USER}")"
+else
+    LOCAL_HOME="$HOME"
+fi
+
+LOCAL_KEY_DIR="$LOCAL_HOME/.config/sops/age"
 
 # 1. Build (passes your local user IDs to the container)
 echo "🚀 Building Alpine 3.23 Image..."
 docker build \
-    --build-arg USER_ID=$(id -u) \
-    --build-arg GROUP_ID=$(id -g) \
+    --build-arg USER_ID="$HOST_UID" \
+    --build-arg GROUP_ID="$HOST_GID" \
     -t $IMAGE_NAME .
 
 # 2. Ensure key directory exists on host

@@ -22,7 +22,7 @@ services:
       GITEA_RUNNER_NAME: CI-Runner
       CONFIG_FILE: /data/config.yaml
       GITEA_INSTANCE_URL: http://gitea:3000
-      GITEA_RUNNER_TOKEN_FILE: /run/secrets/gitea_runner_token
+      GITEA_RUNNER_REGISTRATION_TOKEN_FILE: /run/secrets/gitea_runner_token
     volumes:
       - runner_data:/data
       - /var/run/docker.sock:/var/run/docker.sock

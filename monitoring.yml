@@ -37,6 +37,8 @@ services:
         target: /var/lib/grafana/dashboards/nginx.json
       - source: grafana_dashboard_crowdsec
         target: /var/lib/grafana/dashboards/crowdsec.json
+      - source: grafana_dashboard_proxmox
+        target: /var/lib/grafana/dashboards/proxmox.json
     secrets:
       - grafana_admin_user
       - grafana_admin_password
@@ -86,9 +88,26 @@ services:
       - monitoring_net
     depends_on:
       - pve-exporter
+      - cadvisor
     configs:
       - source: prometheus_config
         target: /etc/prometheus/prometheus.yml
+
+  cadvisor:
+      image: gcr.io/cadvisor/cadvisor:latest
+      container_name: cadvisor
+      restart: unless-stopped
+      privileged: true
+      devices:
+        - /dev/kmsg
+      volumes:
+        - /:/rootfs:ro
+        - /var/run:/var/run:ro
+        - /sys:/sys:ro
+        - /var/lib/docker/:/var/lib/docker:ro
+        - /dev/disk/:/dev/disk:ro
+      networks:
+        - plg_net
 
   pve-exporter:
     image: prompve/prometheus-pve-exporter:latest
@@ -163,8 +182,10 @@ configs:
   grafana_dashboard_provisioning:
     file: ./monitoring/dashboard-provisioning.yml
   grafana_dashboard_nginx:
-    file: ./monitoring/dashboard.json
+    file: ./monitoring/dashboard-analytics.json
   grafana_dashboard_crowdsec:
     file: ./monitoring/dashboard-crowdsec.json
+  grafana_dashboard_proxmox:
+    file: ./monitoring/dashboard-proxmox.json
   pve_exporter_config:
     file: ./monitoring/pve.yml

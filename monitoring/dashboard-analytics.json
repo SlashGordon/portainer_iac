@@ -1776,7 +1776,7 @@
   "preload": false,
   "refresh": "",
   "schemaVersion": 42,
-  "tags": [],
+  "tags": ["nginx", "analytics"],
   "templating": {
     "list": [
       {

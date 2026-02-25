@@ -5,13 +5,18 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     restart: unless-stopped
-    entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "/run.sh"]
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        set -eu
+        export GF_SECURITY_ADMIN_USER="$(cat /run/secrets/grafana_admin_user)"
+        export GF_SECURITY_ADMIN_PASSWORD="$(cat /run/secrets/grafana_admin_password)"
+        export GF_SECURITY_ADMIN_EMAIL="$(cat /run/secrets/grafana_admin_email)"
+        exec /run.sh
     environment:
       GF_INSTALL_PLUGINS: marcusolsson-dynamictext-panel,volkovlabs-echarts-panel
       GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION: false
-      GF_SECURITY_ADMIN_USER_FILE: /run/secrets/grafana_admin_user
-      GF_SECURITY_ADMIN_PASSWORD_FILE: /run/secrets/grafana_admin_password
-      GF_SECURITY_ADMIN_EMAIL_FILE: /run/secrets/grafana_admin_email
     volumes:
       - grafana-data:/var/lib/grafana
     networks:
@@ -32,9 +37,6 @@ services:
         target: /var/lib/grafana/dashboards/nginx.json
       - source: grafana_dashboard_crowdsec
         target: /var/lib/grafana/dashboards/crowdsec.json
-      - source: resolve_secrets_script
-        target: /scripts/resolve-secrets.sh
-        mode: 0555
     secrets:
       - grafana_admin_user
       - grafana_admin_password
@@ -96,7 +98,7 @@ services:
     # Read Docker secrets and export env vars so it never falls back to /etc/prometheus/pve.yml.
     entrypoint:
       - /bin/sh
-      - -lc
+      - -ec
       - |
         set -eu
         export PVE_USER="$(cat /run/secrets/pve_user)"
@@ -154,8 +156,6 @@ configs:
     file: ./monitoring/loki-config.yml
   grafana_datasource_loki:
     file: ./monitoring/datasource/loki.yml
-  resolve_secrets_script:
-    file: ./scripts/resolve-secrets.sh
   prometheus_config:
     file: ./monitoring/prometheus.yml
   grafana_datasource_prometheus:

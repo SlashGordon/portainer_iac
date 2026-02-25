@@ -43,6 +43,5 @@ USER appuser
 # Expose webhook port
 EXPOSE 9000
 
-# Entrypoint wrapper reads secrets into env vars, then starts webhook
-ENTRYPOINT ["/scripts/resolve-secrets.sh"]
-CMD ["webhook", "-hooks", "/etc/webhook/hooks.json", "-verbose"]
+ENTRYPOINT ["webhook"]
+CMD ["-hooks", "/etc/webhook/hooks.json", "-verbose"]

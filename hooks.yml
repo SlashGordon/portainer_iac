@@ -10,10 +10,6 @@ services:
       - "9000:9000"
     volumes:
       - dyndns-data:/var/lib/dyndns
-    configs:
-      - source: resolve_secrets_script
-        target: /scripts/resolve-secrets.sh
-        mode: 0555
     secrets:
       - source: cf_auth_token
         uid: "1000"
@@ -27,10 +23,15 @@ services:
         uid: "1000"
         gid: "1000"
         mode: 0400
-    environment:
-      CF_AUTH_TOKEN_FILE: /run/secrets/cf_auth_token
-      CF_ACCOUNT_ID_FILE: /run/secrets/cf_account_id
-      CF_POLICY_ID_FILE: /run/secrets/cf_policy_id
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        set -eu
+        export CF_AUTH_TOKEN="$(cat /run/secrets/cf_auth_token)"
+        export CF_ACCOUNT_ID="$(cat /run/secrets/cf_account_id)"
+        export CF_POLICY_ID="$(cat /run/secrets/cf_policy_id)"
+        exec webhook -hooks /etc/webhook/hooks.json -verbose
     restart: unless-stopped
     networks:
       - ipv6network
@@ -49,7 +50,3 @@ secrets:
 
 volumes:
   dyndns-data:
-
-configs:
-  resolve_secrets_script:
-    file: ./scripts/resolve-secrets.sh

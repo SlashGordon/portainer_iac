@@ -41,6 +41,10 @@ services:
         target: /var/lib/grafana/dashboards/proxmox.json
       - source: grafana_dashboard_cadvisor
         target: /var/lib/grafana/dashboards/cadvisor.json
+      - source: grafana_dashboard_host
+        target: /var/lib/grafana/dashboards/host.json
+      - source: grafana_dashboard_login
+        target: /var/lib/grafana/dashboards/login.json
     secrets:
       - grafana_admin_user
       - grafana_admin_password
@@ -215,5 +219,9 @@ configs:
     file: ./monitoring/dashboard-proxmox.json
   grafana_dashboard_cadvisor:
     file: ./monitoring/dashboard-cadvisor.json
+  grafana_dashboard_host:
+    file: ./monitoring/dashboard-host.json
+  grafana_dashboard_login:
+    file: ./monitoring/dashboard-login.json
   pve_exporter_config:
     file: ./monitoring/pve.yml

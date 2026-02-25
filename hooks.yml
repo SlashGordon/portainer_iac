@@ -2,14 +2,15 @@ version: "3.8"
 
 services:
   nas-manager-hooks:
-    build:
-      context: ./nas-manager
-    image: diecklabs/nas-manager:latest
+    image: almir/webhook:latest
     container_name: nas-manager-hooks
+    user: "0:0"
     ports:
       - "9000:9000"
     volumes:
       - dyndns-data:/var/lib/dyndns
+      - ./nas-manager/webhook:/etc/webhook:ro
+      - ./nas-manager/scripts:/scripts:ro
     secrets:
       - source: cf_auth_token
         uid: "1000"
@@ -31,7 +32,7 @@ services:
         export CF_AUTH_TOKEN="$(cat /run/secrets/cf_auth_token)"
         export CF_ACCOUNT_ID="$(cat /run/secrets/cf_account_id)"
         export CF_POLICY_ID="$(cat /run/secrets/cf_policy_id)"
-        exec webhook -hooks /etc/webhook/hooks.json -verbose
+        exec /usr/local/bin/webhook -verbose -hooks=/etc/webhook/hooks.json -hotreload
     restart: unless-stopped
     networks:
       - ipv6network

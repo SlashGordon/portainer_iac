@@ -1,9 +1,15 @@
 [
   {
     "id": "fritzbox-dyndns-update",
-    "execute-command": "/scripts/fritzbox-dyndns-update.py",
-    "command-working-directory": "/scripts",
+    "execute-command": "/bin/sh",
+    "command-working-directory": "/",
     "response-message": "DynDNS update triggered",
-    "pass-environment-to-command": []
+    "pass-environment-to-command": [],
+    "pass-arguments-to-command": [
+      {
+        "source": "string",
+        "name": "/scripts/fritzbox-dyndns-update.sh"
+      }
+    ]
   }
 ]

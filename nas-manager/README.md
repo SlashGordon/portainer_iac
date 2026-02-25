@@ -121,8 +121,9 @@ docker compose -f hooks.yml up -d
 # View logs
 docker compose -f hooks.yml logs -f
 
-# Rebuild after changes
-docker compose -f hooks.yml up -d --build
+# Apply changes / update image
+docker compose -f hooks.yml pull
+docker compose -f hooks.yml up -d
 ```
 
 ## Troubleshooting

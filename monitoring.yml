@@ -39,6 +39,8 @@ services:
         target: /var/lib/grafana/dashboards/crowdsec.json
       - source: grafana_dashboard_proxmox
         target: /var/lib/grafana/dashboards/proxmox.json
+      - source: grafana_dashboard_cadvisor
+        target: /var/lib/grafana/dashboards/cadvisor.json
     secrets:
       - grafana_admin_user
       - grafana_admin_password
@@ -187,5 +189,7 @@ configs:
     file: ./monitoring/dashboard-crowdsec.json
   grafana_dashboard_proxmox:
     file: ./monitoring/dashboard-proxmox.json
+  grafana_dashboard_cadvisor:
+    file: ./monitoring/dashboard-cadvisor.json
   pve_exporter_config:
     file: ./monitoring/pve.yml

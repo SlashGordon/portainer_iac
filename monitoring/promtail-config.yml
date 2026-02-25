@@ -6,6 +6,22 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
+  # 1. UBUNTU LOGIN LOGS (The "Important Stuff")
+  - job_name: systemd-journal
+    journal:
+      max_age: 12h
+      path: /var/log/journal
+      labels:
+        job: systemd-journal
+        host: docker-host
+    relabel_configs:
+      # This pulls the 'Unit' (like ssh.service) so you can filter by it
+      - source_labels: ['__journal__systemd_unit']
+        target_label: 'unit'
+      # This catches the 'Reason' (like sshd)
+      - source_labels: ['__journal_syslog_identifier']
+        target_label: 'syslog_identifier'
+  # 2. DOCKER CONTAINER LOGS 
   - job_name: docker_scrape
     docker_sd_configs:
       - host: unix:///var/run/docker.sock

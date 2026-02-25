@@ -63,10 +63,17 @@ services:
     image: grafana/promtail:latest
     container_name: promtail
     restart: unless-stopped
+    # Run as root or a user with 'systemd-journal' group access (ID 101 typically)
+    # Using user: root is the most reliable way to ensure log access across all files
+    user: root 
     command: -config.file=/etc/promtail/config.yml
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      # The Journal is your primary source now
+      - /var/log/journal:/var/log/journal:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      - /var/log/fail2ban.log:/var/log/fail2ban.log:ro 
     networks:
       - plg_net
     depends_on:
@@ -91,6 +98,7 @@ services:
     depends_on:
       - pve-exporter
       - cadvisor
+      - node-exporter
     configs:
       - source: prometheus_config
         target: /etc/prometheus/prometheus.yml
@@ -108,6 +116,22 @@ services:
         - /sys:/sys:ro
         - /var/lib/docker/:/var/lib/docker:ro
         - /dev/disk/:/dev/disk:ro
+      networks:
+        - plg_net
+
+  node-exporter:
+      image: prom/node-exporter:latest
+      container_name: node-exporter
+      restart: unless-stopped
+      volumes:
+        - /proc:/host/proc:ro
+        - /sys:/host/sys:ro
+        - /:/rootfs:ro,rslave
+      command:
+        - '--path.procfs=/host/proc'
+        - '--path.rootfs=/rootfs'
+        - '--path.sysfs=/host/sys'
+        - '--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|var/lib/docker/.+)($$|/)'
       networks:
         - plg_net
 

@@ -92,20 +92,20 @@ services:
     image: prompve/prometheus-pve-exporter:latest
     container_name: pve-exporter
     restart: unless-stopped
-    # The image ENTRYPOINT is the venv-installed `pve_exporter` binary.
-    # We wrap it to load *_FILE secrets into env vars the exporter understands.
-    entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "/opt/prometheus-pve-exporter/bin/pve_exporter"]
-    environment:
-      PVE_USER_FILE: /run/secrets/pve_user
-      PVE_TOKEN_NAME_FILE: /run/secrets/pve_token_name
-      PVE_TOKEN_VALUE_FILE: /run/secrets/pve_token_value
-      PVE_VERIFY_SSL: "false"
+    # The exporter prefers env-based config when PVE_USER is set.
+    # Read Docker secrets and export env vars so it never falls back to /etc/prometheus/pve.yml.
+    entrypoint:
+      - /bin/sh
+      - -lc
+      - |
+        set -eu
+        export PVE_USER="$(cat /run/secrets/pve_user)"
+        export PVE_TOKEN_NAME="$(cat /run/secrets/pve_token_name)"
+        export PVE_TOKEN_VALUE="$(cat /run/secrets/pve_token_value)"
+        export PVE_VERIFY_SSL=false
+        exec /opt/prometheus-pve-exporter/bin/pve_exporter
     networks:
       - plg_net
-    configs:
-      - source: resolve_secrets_script
-        target: /scripts/resolve-secrets.sh
-        mode: 0555
     secrets:
       - source: pve_user
         uid: "101"

@@ -19,13 +19,14 @@ log() {
     msg="$1"
     timestamp=$(date +"%Y-%m-%d %H:%M:%S")
     line="[$timestamp] $msg"
-    echo "$line"
+    # Print to stderr (>&2) so command substitutions $(...) don't capture logs
+    echo "$line" >&2
+    # Append to log file, fail silently if no permission
     echo "$line" >> "$LOG_FILE" 2>/dev/null || true
 }
 
 read_secret_file() {
     # Reads a secret file and strips trailing newlines.
-    # Usage: read_secret_file /run/secrets/name
     file_path="$1"
     if [ -n "$file_path" ] && [ -f "$file_path" ] && [ -r "$file_path" ]; then
         # Busybox-compatible newline stripping
@@ -39,7 +40,6 @@ load_secret_into_var() {
     # If the target variable is empty, try to load it from:
     # 1) an explicit *_FILE env var, or
     # 2) /run/secrets/<default_secret_name>
-    # Usage: load_secret_into_var VAR_NAME DEFAULT_SECRET_NAME
     var_name="$1"
     default_secret_name="$2"
 
@@ -129,6 +129,7 @@ get_static_curl() {
         wget -qO "$CURL_BIN" "$curl_url"
         chmod +x "$CURL_BIN"
     fi
+    # Only echo the binary path so CURL_EXEC captures it cleanly
     echo "$CURL_BIN"
 }
 

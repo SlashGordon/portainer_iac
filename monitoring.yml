@@ -89,26 +89,36 @@ services:
         target: /etc/prometheus/prometheus.yml
 
   pve-exporter:
-      image: prompve/prometheus-pve-exporter:latest
-      container_name: pve-exporter
-      restart: unless-stopped
-      environment:
-        PVE_USER_FILE: /run/secrets/pve_user
-        PVE_TOKEN_NAME_FILE: /run/secrets/pve_token_name
-        PVE_TOKEN_FILE: /run/secrets/pve_token_value
-      entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "python3", "pve_exporter.py", "/etc/prometheus/pve.yml"]
-      networks:
-        - plg_net
-      configs:
-        - source: pve_exporter_config
-          target: /etc/prometheus/pve.yml
-        - source: resolve_secrets_script
-          target: /scripts/resolve-secrets.sh
-          mode: 0555
-      secrets:
-        - pve_user
-        - pve_token_name
-        - pve_token_value
+    image: prompve/prometheus-pve-exporter:latest
+    container_name: pve-exporter
+    restart: unless-stopped
+    # The image ENTRYPOINT is the venv-installed `pve_exporter` binary.
+    # We wrap it to load *_FILE secrets into env vars the exporter understands.
+    entrypoint: ["/bin/sh", "/scripts/resolve-secrets.sh", "/opt/prometheus-pve-exporter/bin/pve_exporter"]
+    environment:
+      PVE_USER_FILE: /run/secrets/pve_user
+      PVE_TOKEN_NAME_FILE: /run/secrets/pve_token_name
+      PVE_TOKEN_VALUE_FILE: /run/secrets/pve_token_value
+      PVE_VERIFY_SSL: "false"
+    networks:
+      - plg_net
+    configs:
+      - source: resolve_secrets_script
+        target: /scripts/resolve-secrets.sh
+        mode: 0555
+    secrets:
+      - source: pve_user
+        uid: "101"
+        gid: "101"
+        mode: 0444
+      - source: pve_token_name
+        uid: "101"
+        gid: "101"
+        mode: 0444
+      - source: pve_token_value
+        uid: "101"
+        gid: "101"
+        mode: 0444
 
 networks:
   cloudflare:

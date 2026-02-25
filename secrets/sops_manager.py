@@ -166,7 +166,7 @@ class SOPSManager:
         return items
 
     def write_secret_file(
-        self, relative_path: str, value: str, mode: int = 0o400
+        self, relative_path: str, value: str, mode: int = 0o444
     ) -> None:
         target = self.secrets_dir / relative_path
         self.write_atomic_text(target, value)

@@ -3,7 +3,6 @@ auth_enabled: false
 server:
   http_listen_port: 3100
   grpc_listen_port: 9096
-  # ADDED: Increase timeouts and message sizes so heavy dashboard queries don't drop
   http_server_read_timeout: 300s
   http_server_write_timeout: 300s
   grpc_server_max_recv_msg_size: 104857600
@@ -22,8 +21,6 @@ common:
       store: inmemory
 
 query_range:
-  # ADDED: This forces Loki to break 30-day queries into 24h chunks and run them in parallel
-  split_queries_by_interval: 24h
   results_cache:
     cache:
       embedded_cache:
@@ -47,9 +44,10 @@ compactor:
 
 limits_config:
   retention_period: 720h # 30 Tage
-  # ADDED: These prevent Loki from rejecting large dashboard requests
-  max_query_length: 720h 
+  # FIXED: This parameter belongs here in modern Loki versions!
+  split_queries_by_interval: 24h
+  max_query_length: 720h
   max_query_series: 100000
   max_query_parallelism: 2
-  query_timeout: 300s 
+  query_timeout: 300s
   max_entries_limit_per_query: 10000

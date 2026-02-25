@@ -33,15 +33,15 @@ services:
 
 secrets:
   admin_token:
-    file: ./secrets/secrets/vaultwarden/admin_token
+    file: /opt/portainer_iac/secrets/secrets/vaultwarden/admin_token
   smtp_host:
-    file: ./secrets/secrets/vaultwarden/smtp_host
+    file: /opt/portainer_iac/secrets/secrets/vaultwarden/smtp_host
   smtp_from:
-    file: ./secrets/secrets/vaultwarden/smtp_from
+    file: /opt/portainer_iac/secrets/secrets/vaultwarden/smtp_from
   smtp_username:
-    file: ./secrets/secrets/vaultwarden/smtp_username
+    file: /opt/portainer_iac/secrets/secrets/vaultwarden/smtp_username
   smtp_password:
-    file: ./secrets/secrets/vaultwarden/smtp_password
+    file: /opt/portainer_iac/secrets/secrets/vaultwarden/smtp_password
 
 volumes:
   vaultwarden-content:

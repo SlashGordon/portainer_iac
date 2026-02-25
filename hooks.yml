@@ -41,11 +41,11 @@ networks:
 
 secrets:
   cf_auth_token:
-    file: ./secrets/secrets/hooks/cloudflare_auth_token
+    file: /opt/portainer_iac/secrets/secrets/hooks/cloudflare_auth_token
   cf_account_id:
-    file: ./secrets/secrets/hooks/cloudflare_account_id
+    file: /opt/portainer_iac/secrets/secrets/hooks/cloudflare_account_id
   cf_policy_id:
-    file: ./secrets/secrets/hooks/cloudflare_policy_id
+    file: /opt/portainer_iac/secrets/secrets/hooks/cloudflare_policy_id
 
 volumes:
   dyndns-data:

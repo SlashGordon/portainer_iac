@@ -4,7 +4,7 @@ This folder contains a small Dockerized wrapper around `sops` + `age`.
 
 It manages one source-of-truth YAML file (`credentials.yml`) and produces:
 - an encrypted artifact (`credentials.enc.yml`) you can commit
-- Docker secret files under `./secrets/secrets/` via `unpack`
+- Docker secret files under `/opt/portainer_iac/secrets/secrets/` via `unpack`
 
 ## Prereqs
 
@@ -48,14 +48,14 @@ Generate Docker secret files from credentials (directory structure follows the Y
 
 Output directory:
 
-- `./secrets/secrets/<top-level>/<nested_key_path_joined_with_underscores>`
+- `/opt/portainer_iac/secrets/secrets/<top-level>/<nested_key_path_joined_with_underscores>`
 
 Example:
 
-- `tunnel.token` → `./secrets/secrets/tunnel/token`
+- `tunnel.token` → `/opt/portainer_iac/secrets/secrets/tunnel/token`
 
 ## Notes
 
-- `unpack` clears `./secrets/secrets/` before regenerating to avoid stale files.
+- `unpack` clears `/opt/portainer_iac/secrets/secrets/` before regenerating to avoid stale files.
 - If you see permission issues with the key dir: `sudo chown -R $(whoami) ~/.config/sops`
 - If you run `./sops-run.sh` via `sudo`, it uses `SUDO_UID/SUDO_GID` and the invoking user’s home so you don’t accidentally build as UID 0 or write keys to `/root`.

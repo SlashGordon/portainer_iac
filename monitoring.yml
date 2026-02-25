@@ -122,17 +122,17 @@ volumes:
 
 secrets:
   grafana_admin_user:
-    file: ./secrets/secrets/grafana/admin_user
+    file: /opt/portainer_iac/secrets/secrets/grafana/admin_user
   grafana_admin_password:
-    file: ./secrets/secrets/grafana/admin_password
+    file: /opt/portainer_iac/secrets/secrets/grafana/admin_password
   grafana_admin_email:
-    file: ./secrets/secrets/grafana/admin_email
+    file: /opt/portainer_iac/secrets/secrets/grafana/admin_email
   pve_user:
-    file: ./secrets/secrets/monitoring/pve_user
+    file: /opt/portainer_iac/secrets/secrets/monitoring/pve_user
   pve_token_name:
-    file: ./secrets/secrets/monitoring/pve_token_name
+    file: /opt/portainer_iac/secrets/secrets/monitoring/pve_token_name
   pve_token_value:
-    file: ./secrets/secrets/monitoring/pve_token_value
+    file: /opt/portainer_iac/secrets/secrets/monitoring/pve_token_value
 
 configs:
   promtail_config:

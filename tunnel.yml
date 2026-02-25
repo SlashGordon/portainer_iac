@@ -17,4 +17,4 @@ networks:
 
 secrets:
   cf_tunnel_token:
-    file: ./secrets/secrets/tunnel/token
+    file: /opt/portainer_iac/secrets/secrets/tunnel/token

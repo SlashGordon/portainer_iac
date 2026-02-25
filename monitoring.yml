@@ -102,6 +102,9 @@ services:
       configs:
         - source: pve_exporter_config
           target: /etc/prometheus/pve.yml
+        - source: resolve_secrets_script
+          target: /scripts/resolve-secrets.sh
+          mode: 0555
       secrets:
         - pve_user
         - pve_token_name

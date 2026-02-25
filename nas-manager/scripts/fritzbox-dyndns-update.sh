@@ -9,6 +9,7 @@
 LOG_FILE="/var/log/dyndns-update.log"
 MAX_RETRIES=5
 RETRY_DELAY_SECONDS=2
+SECRETS_DIR="/run/secrets"
 
 # -----------------------------------------------------------------------------
 # Helper Functions
@@ -20,6 +21,46 @@ log() {
     line="[$timestamp] $msg"
     echo "$line"
     echo "$line" >> "$LOG_FILE" 2>/dev/null || true
+}
+
+read_secret_file() {
+    # Reads a secret file and strips trailing newlines.
+    # Usage: read_secret_file /run/secrets/name
+    file_path="$1"
+    if [ -n "$file_path" ] && [ -f "$file_path" ] && [ -r "$file_path" ]; then
+        # Busybox-compatible newline stripping
+        tr -d '\r\n' < "$file_path"
+        return 0
+    fi
+    return 1
+}
+
+load_secret_into_var() {
+    # If the target variable is empty, try to load it from:
+    # 1) an explicit *_FILE env var, or
+    # 2) /run/secrets/<default_secret_name>
+    # Usage: load_secret_into_var VAR_NAME DEFAULT_SECRET_NAME
+    var_name="$1"
+    default_secret_name="$2"
+
+    eval current_val="\${$var_name}"
+    if [ -n "$current_val" ]; then
+        return 0
+    fi
+
+    file_var_name="${var_name}_FILE"
+    eval explicit_file_path="\${$file_var_name}"
+    if secret_val=$(read_secret_file "$explicit_file_path"); then
+        export "$var_name=$secret_val"
+        return 0
+    fi
+
+    if secret_val=$(read_secret_file "${SECRETS_DIR}/${default_secret_name}"); then
+        export "$var_name=$secret_val"
+        return 0
+    fi
+
+    return 1
 }
 
 fetch_ipv4_once() {
@@ -71,6 +112,26 @@ get_ipv6_network() {
     echo "$ipv6" | cut -d: -f1-4 | sed 's/$/::\/64/'
 }
 
+get_static_curl() {
+    CURL_BIN="/tmp/curl"
+    if [ ! -x "$CURL_BIN" ]; then
+        arch=$(uname -m)
+        if [ "$arch" = "x86_64" ]; then
+            curl_url="https://github.com/moparisthebest/static-curl/releases/latest/download/curl-amd64"
+        elif [ "$arch" = "aarch64" ]; then
+            curl_url="https://github.com/moparisthebest/static-curl/releases/latest/download/curl-aarch64"
+        else
+            log "ERROR: Unsupported architecture ($arch) for static curl."
+            exit 1
+        fi
+        
+        log "Bootstrapping static curl ($arch) to handle PUT request..."
+        wget -qO "$CURL_BIN" "$curl_url"
+        chmod +x "$CURL_BIN"
+    fi
+    echo "$CURL_BIN"
+}
+
 # -----------------------------------------------------------------------------
 # Main Execution
 # -----------------------------------------------------------------------------
@@ -78,9 +139,14 @@ get_ipv6_network() {
 main() {
     log "FritzBox DynDNS webhook triggered"
 
+    # Load required environment variables (supports Docker secrets via /run/secrets/*)
+    load_secret_into_var "CF_AUTH_TOKEN" "cf_auth_token" || true
+    load_secret_into_var "CF_ACCOUNT_ID" "cf_account_id" || true
+    load_secret_into_var "CF_POLICY_ID" "cf_policy_id" || true
+
     # Validate required environment variables
     if [ -z "$CF_AUTH_TOKEN" ] || [ -z "$CF_ACCOUNT_ID" ] || [ -z "$CF_POLICY_ID" ]; then
-        log "ERROR: CF_AUTH_TOKEN, CF_ACCOUNT_ID, and CF_POLICY_ID must be set"
+        log "ERROR: CF_AUTH_TOKEN, CF_ACCOUNT_ID, and CF_POLICY_ID must be set (env or Docker secrets)"
         exit 1
     fi
 
@@ -143,19 +209,18 @@ main() {
 
     log "Updating policy with new IPs..."
     
-    # Send PUT request using wget. Busybox wget uses POST with --post-data, 
-    # so we use X-HTTP-Method-Override to force Cloudflare to process it as a PUT request.
-    put_response=$(wget -qO- \
-        --header="Authorization: Bearer $CF_AUTH_TOKEN" \
-        --header="Content-Type: application/json" \
-        --header="X-HTTP-Method-Override: PUT" \
-        --post-data="$update_payload" \
-        "$policy_url")
+    # Send PUT request using dynamically downloaded static curl
+    CURL_EXEC=$(get_static_curl)
+    
+    put_response=$("$CURL_EXEC" -s -X PUT "$policy_url" \
+        -H "Authorization: Bearer $CF_AUTH_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "$update_payload")
 
     if echo "$put_response" | grep -q '"success":true' || echo "$put_response" | grep -q '"success": true'; then
         log "Zero Trust policy updated successfully"
     else
-        log "ERROR: Zero Trust policy update failed."
+        log "ERROR: Zero Trust policy update failed. Dump: $put_response"
         exit 1
     fi
 

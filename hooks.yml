@@ -29,9 +29,6 @@ services:
       - -ec
       - |
         set -eu
-        export CF_AUTH_TOKEN="$(cat /run/secrets/cf_auth_token)"
-        export CF_ACCOUNT_ID="$(cat /run/secrets/cf_account_id)"
-        export CF_POLICY_ID="$(cat /run/secrets/cf_policy_id)"
         exec /usr/local/bin/webhook -verbose -hooks=/etc/webhook/hooks.json -hotreload
     restart: unless-stopped
     networks:

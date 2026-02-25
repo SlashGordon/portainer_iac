@@ -64,7 +64,7 @@ services:
         target: /etc/loki/local-config.yml
 
   promtail:
-    image: grafana/promtail:latest
+    image: grafana/promtail:3.6.7
     container_name: promtail
     restart: unless-stopped
     # Run as root or a user with 'systemd-journal' group access (ID 101 typically)

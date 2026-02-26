@@ -24,31 +24,21 @@ services:
       SMTP_FROM_NAME: Vaultwarden
     volumes:
       - vaultwarden-content:/data/
-    ports:
-      - "3231:80"
     secrets:
       - source: admin_token
-        uid: "1000"
-        gid: "1000"
-        mode: 0400
       - source: smtp_host
-        uid: "1000"
-        gid: "1000"
-        mode: 0400
       - source: smtp_from
-        uid: "1000"
-        gid: "1000"
-        mode: 0400
       - source: smtp_username
-        uid: "1000"
-        gid: "1000"
-        mode: 0400
       - source: smtp_password
-        uid: "1000"
-        gid: "1000"
-        mode: 0400
     networks:
-      - cloudflare
+      - apps 
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.vaultwarden.rule=Host(`vault.dieck-labs.de`)"
+      - "traefik.http.routers.vaultwarden.entrypoints=web"
+      - "traefik.http.routers.vaultwarden.middlewares=crowdsec@docker"
+      - "traefik.http.services.vaultwarden.loadbalancer.server.port=80"
 
 secrets:
   admin_token:
@@ -67,5 +57,5 @@ volumes:
     external: true
 
 networks:
-  cloudflare:
+  apps:
     external: true

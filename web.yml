@@ -191,6 +191,7 @@ networks:
   cloudflare:
     external: true
   apps:
+    name: apps
     driver: bridge
   monitoring_net:
     external: true

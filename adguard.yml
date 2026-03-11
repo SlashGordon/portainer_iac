@@ -1,21 +1,30 @@
 version: "3.9"
 
 services:
-  adguard:
-    image: adguard/adguardhome
+  adguardhome:
+    image: adguard/adguardhome:latest
     container_name: adguardhome
     restart: unless-stopped
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-      - "3000:3000/tcp"
     networks:
-      - cloudflare
+      macvlan_net:
+        # Assign your dedicated IP address here
+        ipv4_address: 192.168.50.250
+      cloudflare:
     volumes:
-      - adguard_config:/opt/adguardhome/conf
       - adguard_work:/opt/adguardhome/work
+      - adguard_config:/opt/adguardhome/conf
 
 networks:
+  macvlan_net:
+    driver: macvlan
+    driver_opts:
+      # run ip route | grep default on your host to find the correct parent interface
+      parent: ens18 
+    ipam:
+      config:
+        # Change these to match your router and network
+        - subnet: 192.168.50.0/24
+          gateway: 192.168.50.1
   cloudflare:
     external: true
 

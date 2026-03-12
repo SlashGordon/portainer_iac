@@ -20,7 +20,7 @@ services:
       - "traefik.http.routers.adguard.rule=Host(`adguard.dieck-labs.de`)"
       - "traefik.http.routers.adguard.entrypoints=web"
       - "traefik.http.routers.adguard.middlewares=crowdsec@docker"
-      - "traefik.http.services.adguard.loadbalancer.server.port=80"
+      - "traefik.http.services.adguard.loadbalancer.server.port=8087"
 
 networks:
   macvlan_net:

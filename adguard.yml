@@ -11,6 +11,8 @@ services:
         ipv4_address: 192.168.50.250
         ipv6_address: fd15:d91c:273f:0::250
       cloudflare:
+    ports:
+      - "80:8087" # Web interface (after setup)
     volumes:
       - adguard_work:/opt/adguardhome/work
       - adguard_config:/opt/adguardhome/conf

@@ -15,6 +15,7 @@ theme: auto
 dns:
   bind_hosts:
     - 192.168.50.250
+    - "fd15:d91c:273f:0::250"
   port: 53
   anonymize_client_ip: false
   ratelimit: 20

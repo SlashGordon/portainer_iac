@@ -10,12 +10,17 @@ services:
         # Assign your dedicated IP address here
         ipv4_address: 192.168.50.250
         ipv6_address: fd15:d91c:273f:0::250
-      cloudflare:
-    ports:
-      - "80:8087" # Web interface (after setup)
+      apps:
     volumes:
       - adguard_work:/opt/adguardhome/work
       - adguard_config:/opt/adguardhome/conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.adguard.rule=Host(`adguard.dieck-labs.de`)"
+      - "traefik.http.routers.adguard.entrypoints=web"
+      - "traefik.http.routers.adguard.middlewares=crowdsec@docker"
+      - "traefik.http.services.adguard.loadbalancer.server.port=80"
 
 networks:
   macvlan_net:
@@ -32,7 +37,7 @@ networks:
         # run ip -6 addr show dev ens18 on your host to find the correct IPv6 subnet and gateway
         - subnet: fd15:d91c:273f:0::/64
           gateway: fd15:d91c:273f:0::1
-  cloudflare:
+  apps:
     external: true
 
 volumes:

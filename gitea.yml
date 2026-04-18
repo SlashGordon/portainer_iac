@@ -76,3 +76,5 @@ configs:
             - "portfoliomanager-content-dev"
             - "portfoliomanager-content-prd"
             - "blog-astro-content-prd"
+            - "druckzugpro-content-dev"
+            - "druckzugpro-content-prd"

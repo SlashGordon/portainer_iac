@@ -51,6 +51,14 @@ services:
       - "traefik.http.middlewares.money-redirect.redirectregex.regex=^http://[^/]+(.*)"
       - "traefik.http.middlewares.money-redirect.redirectregex.replacement=https://www.howtolosemoneyfast.com$${1}"
       - "traefik.http.middlewares.money-redirect.redirectregex.permanent=true"
+      # Redirect druckzug.pro -> www.druckzug.pro
+      - "traefik.http.routers.druckzug-bare-redirect.rule=Host(`druckzug.pro`)"
+      - "traefik.http.routers.druckzug-bare-redirect.entrypoints=web"
+      - "traefik.http.routers.druckzug-bare-redirect.middlewares=crowdsec@docker,druckzug-redirect@docker"
+      - "traefik.http.routers.druckzug-bare-redirect.service=noop@internal"
+      - "traefik.http.middlewares.druckzug-redirect.redirectregex.regex=^http://druckzug\\.pro(.*)"
+      - "traefik.http.middlewares.druckzug-redirect.redirectregex.replacement=https://www.druckzug.pro$${1}"
+      - "traefik.http.middlewares.druckzug-redirect.redirectregex.permanent=true"
       # Redirect slashgordon.link -> www.slashgordon.link
       - "traefik.http.routers.blog-bare-redirect.rule=Host(`slashgordon.link`)"
       - "traefik.http.routers.blog-bare-redirect.entrypoints=web"
@@ -143,6 +151,25 @@ services:
       - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Pragma=no-cache"
       - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Expires=0"
 
+  druckzugpro-web-dev:
+    image: nginx:alpine
+    container_name: druckzugprodev
+    restart: unless-stopped
+    volumes:
+      - druckzugpro-content-dev:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    configs:
+      - source: nginx_json_log
+        target: /etc/nginx/conf.d/00-json-log.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.druckzugpro-dev.rule=Host(`druckzug-dev.dieck-labs.de`)"
+      - "traefik.http.routers.druckzugpro-dev.entrypoints=web"
+      - "traefik.http.routers.druckzugpro-dev.middlewares=crowdsec@docker"
+      - "traefik.http.services.druckzugpro-dev.loadbalancer.server.port=80"
+
   gitea-build-data-explorer:
     image: nginx:alpine
     container_name: giteabuildexplorer
@@ -187,6 +214,25 @@ services:
       - "traefik.http.routers.blog-astro-prd.middlewares=crowdsec@docker"
       - "traefik.http.services.blog-astro-prd.loadbalancer.server.port=80"
 
+  druckzugpro-web-prd:
+    image: nginx:alpine
+    container_name: druckzugproprd
+    restart: unless-stopped
+    volumes:
+      - druckzugpro-content-prd:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    configs:
+      - source: nginx_json_log
+        target: /etc/nginx/conf.d/00-json-log.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.druckzugpro-prd.rule=Host(`www.druckzug.pro`)"
+      - "traefik.http.routers.druckzugpro-prd.entrypoints=web"
+      - "traefik.http.routers.druckzugpro-prd.middlewares=crowdsec@docker"
+      - "traefik.http.services.druckzugpro-prd.loadbalancer.server.port=80"
+
 networks:
   cloudflare:
     external: true
@@ -201,11 +247,15 @@ volumes:
     external: true
   howtolosemoney-content-prd:
     external: true
+  druckzugpro-content-dev:
+    external: true
   portfoliomanager-content-dev:
     external: true
   portfoliomanager-content-prd:
     external: true
   blog-astro-content-prd:
+    external: true
+  druckzugpro-content-prd:
     external: true
   gitea-build-data:
     external: true

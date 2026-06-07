@@ -78,3 +78,5 @@ configs:
             - "blog-astro-content-prd"
             - "druckzugpro-content-dev"
             - "druckzugpro-content-prd"
+            - "partioplanner-content-dev"
+            - "partioplanner-content-prd"

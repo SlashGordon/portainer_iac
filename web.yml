@@ -59,6 +59,14 @@ services:
       - "traefik.http.middlewares.druckzug-redirect.redirectregex.regex=^http://druckzug\\.pro(.*)"
       - "traefik.http.middlewares.druckzug-redirect.redirectregex.replacement=https://www.druckzug.pro$${1}"
       - "traefik.http.middlewares.druckzug-redirect.redirectregex.permanent=true"
+      # Redirect patioplanner.app -> www.patioplanner.app
+      - "traefik.http.routers.patioplanner-bare-redirect.rule=Host(`patioplanner.app`)"
+      - "traefik.http.routers.patioplanner-bare-redirect.entrypoints=web"
+      - "traefik.http.routers.patioplanner-bare-redirect.middlewares=crowdsec@docker,patioplanner-redirect@docker"
+      - "traefik.http.routers.patioplanner-bare-redirect.service=noop@internal"
+      - "traefik.http.middlewares.patioplanner-redirect.redirectregex.regex=^http://patioplanner\\.app(.*)"
+      - "traefik.http.middlewares.patioplanner-redirect.redirectregex.replacement=https://www.patioplanner.app$${1}"
+      - "traefik.http.middlewares.patioplanner-redirect.redirectregex.permanent=true"
       # Redirect slashgordon.link -> www.slashgordon.link
       - "traefik.http.routers.blog-bare-redirect.rule=Host(`slashgordon.link`)"
       - "traefik.http.routers.blog-bare-redirect.entrypoints=web"
@@ -170,6 +178,44 @@ services:
       - "traefik.http.routers.druckzugpro-dev.middlewares=crowdsec@docker"
       - "traefik.http.services.druckzugpro-dev.loadbalancer.server.port=80"
 
+  patioplanner-web-dev:
+    image: nginx:alpine
+    container_name: patioplannerdev
+    restart: unless-stopped
+    volumes:
+      - patioplanner-content-dev:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    configs:
+      - source: nginx_json_log
+        target: /etc/nginx/conf.d/00-json-log.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.patioplanner-dev.rule=Host(`patioplanner-dev.dieck-labs.de`)"
+      - "traefik.http.routers.patioplanner-dev.entrypoints=web"
+      - "traefik.http.routers.patioplanner-dev.middlewares=crowdsec@docker"
+      - "traefik.http.services.patioplanner-dev.loadbalancer.server.port=80"
+
+  patioplanner-web-prd:
+    image: nginx:alpine
+    container_name: patioplannerprd
+    restart: unless-stopped
+    volumes:
+      - patioplanner-content-prd:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    configs:
+      - source: nginx_json_log
+        target: /etc/nginx/conf.d/00-json-log.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.patioplanner-prd.rule=Host(`www.patioplanner.app`)"
+      - "traefik.http.routers.patioplanner-prd.entrypoints=web"
+      - "traefik.http.routers.patioplanner-prd.middlewares=crowdsec@docker"
+      - "traefik.http.services.patioplanner-prd.loadbalancer.server.port=80"
+
   gitea-build-data-explorer:
     image: nginx:alpine
     container_name: giteabuildexplorer
@@ -256,6 +302,10 @@ volumes:
   blog-astro-content-prd:
     external: true
   druckzugpro-content-prd:
+    external: true
+  patioplanner-content-prd:
+    external: true
+  patioplanner-content-dev:
     external: true
   gitea-build-data:
     external: true

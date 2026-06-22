@@ -86,7 +86,7 @@
         }
       ],
       "timeFrom": "1h",
-      "title": "Unique user visits",
+      "title": "Unique visitor IPs",
       "type": "stat"
     },
     {
@@ -154,7 +154,7 @@
         }
       ],
       "timeFrom": "24h",
-      "title": "Unique user visits",
+      "title": "Unique visitor IPs",
       "type": "stat"
     },
     {
@@ -189,7 +189,7 @@
         "y": 0
       },
       "id": 33,
-      "interval": "2d",
+      "interval": "7d",
       "maxDataPoints": 1,
       "options": {
         "colorMode": "background",
@@ -216,13 +216,31 @@
             "type": "loki",
             "uid": "Loki"
           },
-          "expr": "count(sum by (remote_addr) (count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | remote_addr !~ \"2001:4ca0:108:42::*\" | remote_addr !=\"62.210.149.41\" | remote_addr !~ \"91.134.156.*\" | remote_addr !~ \"37.59.149.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" |  __error__=\"\" [2d])))",
-          "legendFormat": "",
+          "expr": "sum(count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_referer =~ \".*google\\..*\" | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | status < 400 | __error__=\"\" [7d]))",
+          "legendFormat": "Google",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_referer =~ \".*bing\\..*\" | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | status < 400 | __error__=\"\" [7d]))",
+          "legendFormat": "Bing",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "count(sum by (remote_addr) (count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | remote_addr !~ \"2001:4ca0:108:42::*\" | remote_addr !=\"62.210.149.41\" | remote_addr !~ \"91.134.156.*\" | remote_addr !~ \"37.59.149.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | __error__=\"\" [7d])))",
+          "legendFormat": "All unique visitor IPs",
+          "refId": "C"
         }
       ],
-      "timeFrom": "2d",
-      "title": "Unique user visits",
+      "timeFrom": "7d",
+      "title": "Search landings vs unique visitor IPs",
       "type": "stat"
     },
     {
@@ -257,7 +275,7 @@
         "y": 0
       },
       "id": 39,
-      "interval": "7d",
+      "interval": "28d",
       "maxDataPoints": 1,
       "options": {
         "colorMode": "background",
@@ -284,15 +302,37 @@
             "type": "loki",
             "uid": "Loki"
           },
-          "expr": "count(sum by (remote_addr) (count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | remote_addr !~ \"2001:4ca0:108:42::*\" | remote_addr !=\"62.210.149.41\" | remote_addr !~ \"91.134.156.*\" | remote_addr !~ \"37.59.149.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" |  __error__=\"\" [7d])))",
+          "expr": "sum(count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_referer =~ \".*google\\..*\" | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | status < 400 | __error__=\"\" [28d]))",
           "instant": false,
-          "legendFormat": "",
+          "legendFormat": "Google",
           "range": true,
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_referer =~ \".*bing\\..*\" | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | status < 400 | __error__=\"\" [28d]))",
+          "instant": false,
+          "legendFormat": "Bing",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "count(sum by (remote_addr) (count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | remote_addr !~ \"2001:4ca0:108:42::*\" | remote_addr !=\"62.210.149.41\" | remote_addr !~ \"91.134.156.*\" | remote_addr !~ \"37.59.149.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | __error__=\"\" [28d])))",
+          "instant": false,
+          "legendFormat": "All unique visitor IPs",
+          "range": true,
+          "refId": "C"
         }
       ],
-      "timeFrom": "7d",
-      "title": "Unique user visits",
+      "timeFrom": "28d",
+      "title": "Search landings vs unique visitor IPs",
       "type": "stat"
     },
     {
@@ -540,7 +580,7 @@
         }
       ],
       "timeFrom": "7d",
-      "title": "Unique user visits",
+      "title": "Unique visitor IPs",
       "type": "timeseries"
     },
     {
@@ -630,13 +670,31 @@
             "type": "loki",
             "uid": "Loki"
           },
-          "expr": "count(sum by (remote_addr) (count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | remote_addr !~ \"2001:4ca0:108:42::*\" | remote_addr !=\"62.210.149.41\" | remote_addr !~ \"91.134.156.*\" | remote_addr !~ \"37.59.149.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" |  __error__=\"\" [1d])))",
-          "legendFormat": "Unique user visit count",
+          "expr": "sum(count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_referer =~ \".*google\\..*\" | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | status < 400 | __error__=\"\" [1d]))",
+          "legendFormat": "Google search landing requests",
           "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "sum(count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_referer =~ \".*bing\\..*\" | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | status < 400 | __error__=\"\" [1d]))",
+          "legendFormat": "Bing search landing requests",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "expr": "count(sum by (remote_addr) (count_over_time({filename=\"$filename\", host=\"$host\"} | json | http_user_agent !~ \".*bot.*\" | http_user_agent !~ \".*crawler.*\" | remote_addr !~ \"2001:4ca0:108:42::*\" | remote_addr !=\"62.210.149.41\" | remote_addr !~ \"91.134.156.*\" | remote_addr !~ \"37.59.149.*\" | http_user_agent != \"worldping-api\" | request_uri !~ \"/wp-.*\" | request_uri !~ \"//wp-.*\" | request_uri !~ \"/*.wordfence.*\" | request_uri !~ \"/robots.txt\" | request_uri !~ \"/xmlrpc.php\" | __error__=\"\" [1d])))",
+          "legendFormat": "All unique visitor IPs",
+          "refId": "C"
         }
       ],
       "timeFrom": "30d",
-      "title": "Unique user visits",
+      "title": "Search landings vs unique visitor IPs",
       "type": "timeseries"
     },
     {

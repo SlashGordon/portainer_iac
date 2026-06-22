@@ -34,7 +34,7 @@ scrape_configs:
     pipeline_stages:
       # NGINX containers: parse JSON access logs
       - match:
-          selector: '{container=~"moneywebprd|moneywebdev|blogastroprd|portfoliomanagerdev|giteabuildexplorer"}'
+          selector: '{container=~"moneywebprd|moneywebdev|blogastroprd|portfoliomanagerdev|giteabuildexplorer|patioplannerprd|druckzugproprd"}'
           stages:
             - docker: {}
             - json:

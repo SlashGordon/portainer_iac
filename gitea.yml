@@ -80,3 +80,5 @@ configs:
             - "druckzugpro-content-prd"
             - "patioplanner-content-dev"
             - "patioplanner-content-prd"
+            - "html-to-markdown-content-dev"
+            - "html-to-markdown-content-prd"

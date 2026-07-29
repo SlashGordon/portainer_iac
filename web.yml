@@ -75,6 +75,14 @@ services:
       - "traefik.http.middlewares.blog-redirect.redirectregex.regex=^http://slashgordon\\.link(.*)"
       - "traefik.http.middlewares.blog-redirect.redirectregex.replacement=https://www.slashgordon.link$${1}"
       - "traefik.http.middlewares.blog-redirect.redirectregex.permanent=true"
+      # Redirect html-to-markdown-ai.com -> www.html-to-markdown-ai.com
+      - "traefik.http.routers.htmltomarkdown-bare-redirect.rule=Host(`html-to-markdown-ai.com`)"
+      - "traefik.http.routers.htmltomarkdown-bare-redirect.entrypoints=web"
+      - "traefik.http.routers.htmltomarkdown-bare-redirect.middlewares=crowdsec@docker,htmltomarkdown-redirect@docker"
+      - "traefik.http.routers.htmltomarkdown-bare-redirect.service=noop@internal"
+      - "traefik.http.middlewares.htmltomarkdown-redirect.redirectregex.regex=^http://html-to-markdown-ai\\.com(.*)"
+      - "traefik.http.middlewares.htmltomarkdown-redirect.redirectregex.replacement=https://www.html-to-markdown-ai.com$${1}"
+      - "traefik.http.middlewares.htmltomarkdown-redirect.redirectregex.permanent=true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik-access-logs:/var/log/traefik
@@ -216,6 +224,44 @@ services:
       - "traefik.http.routers.patioplanner-prd.middlewares=crowdsec@docker"
       - "traefik.http.services.patioplanner-prd.loadbalancer.server.port=80"
 
+  html-to-markdown-web-dev:
+    image: nginx:alpine
+    container_name: htmltomarkdowndev
+    restart: unless-stopped
+    volumes:
+      - html-to-markdown-content-dev:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    configs:
+      - source: nginx_json_log
+        target: /etc/nginx/conf.d/00-json-log.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.html-to-markdown-dev.rule=Host(`html-to-markdown-dev.dieck-labs.de`)"
+      - "traefik.http.routers.html-to-markdown-dev.entrypoints=web"
+      - "traefik.http.routers.html-to-markdown-dev.middlewares=crowdsec@docker"
+      - "traefik.http.services.html-to-markdown-dev.loadbalancer.server.port=80"
+
+  html-to-markdown-web-prd:
+    image: nginx:alpine
+    container_name: htmltomarkdownprd
+    restart: unless-stopped
+    volumes:
+      - html-to-markdown-content-prd:/usr/share/nginx/html:ro
+    networks:
+      - apps
+    configs:
+      - source: nginx_json_log
+        target: /etc/nginx/conf.d/00-json-log.conf
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.html-to-markdown-prd.rule=Host(`www.html-to-markdown-ai.com`)"
+      - "traefik.http.routers.html-to-markdown-prd.entrypoints=web"
+      - "traefik.http.routers.html-to-markdown-prd.middlewares=crowdsec@docker"
+      - "traefik.http.services.html-to-markdown-prd.loadbalancer.server.port=80"
+
   gitea-build-data-explorer:
     image: nginx:alpine
     container_name: giteabuildexplorer
@@ -306,6 +352,10 @@ volumes:
   patioplanner-content-prd:
     external: true
   patioplanner-content-dev:
+    external: true
+  html-to-markdown-content-dev:
+    external: true
+  html-to-markdown-content-prd:
     external: true
   gitea-build-data:
     external: true

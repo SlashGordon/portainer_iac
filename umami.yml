@@ -32,18 +32,18 @@ services:
     depends_on:
       umami-db:
         condition: service_healthy
-    command:
+    entrypoint:
       - /bin/sh
       - -ec
       - |
         set -eu
         DB_PASS="$(cat /run/secrets/umami_db_password)"
-        APP_SECRET="$(cat /run/secrets/umami_app_secret)"
-        export DATABASE_URL="postgresql://umami:${DB_PASS}@umami-db:5432/umami"
-        export APP_SECRET="${APP_SECRET}"
-        exec node_modules/.bin/next start
-    environment:
-      DISABLE_TELEMETRY: 1
+        ENCODED_PASS="$(node -e "process.stdout.write(encodeURIComponent(require('fs').readFileSync('/run/secrets/umami_db_password','utf8')))")"
+        export DATABASE_URL="postgresql://umami:${ENCODED_PASS}@umami-db:5432/umami"
+        export APP_SECRET="$(cat /run/secrets/umami_app_secret)"
+        export DISABLE_TELEMETRY=1
+        npx prisma migrate deploy
+        exec node server.js
     networks:
       - umami
       - apps

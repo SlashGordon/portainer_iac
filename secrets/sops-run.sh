@@ -30,9 +30,17 @@ mkdir -p "$LOCAL_KEY_DIR"
 
 # 3. Run
 # Mounts: Current Dir -> /app | Config -> /home/sopsuser/.config
+RUN_ARGS=(run --rm -it)
+
 # --userns=keep-id maps host UID/GID into the container (needed for Podman on macOS)
-$CONTAINER_CLI run --rm -it \
-    --userns=keep-id \
-    -v "$(pwd)":/app \
-    -v "$LOCAL_KEY_DIR":"/home/sopsuser/.config/sops/age" \
+if [[ "$(uname)" == "Darwin" ]]; then
+    RUN_ARGS+=(--userns=keep-id)
+fi
+
+RUN_ARGS+=(
+    -v "$(pwd)":/app
+    -v "$LOCAL_KEY_DIR":"/home/sopsuser/.config/sops/age"
     $IMAGE_NAME "$@"
+)
+
+$CONTAINER_CLI "${RUN_ARGS[@]}"

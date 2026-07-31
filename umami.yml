@@ -1,0 +1,73 @@
+services:
+  umami-db:
+    image: postgres:16-alpine
+    container_name: umami-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: umami
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        set -eu
+        export POSTGRES_PASSWORD="$(cat /run/secrets/umami_db_password)"
+        exec docker-entrypoint.sh postgres
+    volumes:
+      - umami-db-data:/var/lib/postgresql/data
+    networks:
+      - umami
+    secrets:
+      - umami_db_password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umami"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-latest
+    container_name: umami
+    restart: unless-stopped
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    command:
+      - /bin/sh
+      - -ec
+      - |
+        set -eu
+        DB_PASS="$(cat /run/secrets/umami_db_password)"
+        APP_SECRET="$(cat /run/secrets/umami_app_secret)"
+        export DATABASE_URL="postgresql://umami:${DB_PASS}@umami-db:5432/umami"
+        export APP_SECRET="${APP_SECRET}"
+        exec node_modules/.bin/next start
+    environment:
+      DISABLE_TELEMETRY: 1
+    networks:
+      - umami
+      - apps
+    secrets:
+      - umami_db_password
+      - umami_app_secret
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.umami.rule=Host(`umami.dieck-labs.de`)"
+      - "traefik.http.routers.umami.entrypoints=web"
+      - "traefik.http.routers.umami.middlewares=crowdsec@docker"
+      - "traefik.http.services.umami.loadbalancer.server.port=3000"
+
+secrets:
+  umami_db_password:
+    file: /opt/portainer_iac/secrets/secrets/umami/db_password
+  umami_app_secret:
+    file: /opt/portainer_iac/secrets/secrets/umami/app_secret
+
+volumes:
+  umami-db-data:
+
+networks:
+  umami:
+  apps:
+    external: true

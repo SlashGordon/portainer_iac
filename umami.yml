@@ -6,13 +6,7 @@ services:
     environment:
       POSTGRES_DB: umami
       POSTGRES_USER: umami
-    command:
-      - /bin/sh
-      - -ec
-      - |
-        set -eu
-        export POSTGRES_PASSWORD="$(cat /run/secrets/umami_db_password)"
-        exec docker-entrypoint.sh postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/umami_db_password
     volumes:
       - umami-db-data:/var/lib/postgresql/data
     networks:
@@ -33,17 +27,20 @@ services:
       umami-db:
         condition: service_healthy
     entrypoint:
-      - /bin/sh
-      - -ec
+      - node
+      - -e
       - |
-        set -eu
-        DB_PASS="$(cat /run/secrets/umami_db_password)"
-        ENCODED_PASS="$(node -e "process.stdout.write(encodeURIComponent(require('fs').readFileSync('/run/secrets/umami_db_password','utf8')))")"
-        export DATABASE_URL="postgresql://umami:${ENCODED_PASS}@umami-db:5432/umami"
-        export APP_SECRET="$(cat /run/secrets/umami_app_secret)"
-        export DISABLE_TELEMETRY=1
-        npx prisma migrate deploy
-        exec node server.js
+        const { readFileSync } = require('fs');
+        const { execSync } = require('child_process');
+        const dbPass = readFileSync('/run/secrets/umami_db_password', 'utf8').trim();
+        const appSecret = readFileSync('/run/secrets/umami_app_secret', 'utf8').trim();
+        process.env.DATABASE_URL = 'postgresql://umami:' + encodeURIComponent(dbPass) + '@umami-db:5432/umami';
+        process.env.APP_SECRET = appSecret;
+        process.env.DISABLE_TELEMETRY = '1';
+        console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
+        console.log('APP_SECRET set:', !!process.env.APP_SECRET);
+        execSync('npx prisma migrate deploy', { stdio: 'inherit', env: process.env });
+        require('./server.js');
     networks:
       - umami
       - apps

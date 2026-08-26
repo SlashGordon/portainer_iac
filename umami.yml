@@ -31,16 +31,12 @@ services:
       - -e
       - |
         const { readFileSync } = require('fs');
-        const { execSync } = require('child_process');
         const dbPass = readFileSync('/run/secrets/umami_db_password', 'utf8').trim();
         const appSecret = readFileSync('/run/secrets/umami_app_secret', 'utf8').trim();
         process.env.DATABASE_URL = 'postgresql://umami:' + encodeURIComponent(dbPass) + '@umami-db:5432/umami';
         process.env.APP_SECRET = appSecret;
         process.env.DISABLE_TELEMETRY = '1';
         process.env.TRACKER_SCRIPT_NAME = 'getinfo';
-        console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
-        console.log('APP_SECRET set:', !!process.env.APP_SECRET);
-        execSync('npx prisma migrate deploy', { stdio: 'inherit', env: process.env });
         require('./server.js');
     environment:
       TRACKER_SCRIPT_NAME: getinfo
@@ -53,20 +49,26 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=apps"
-      # Main router (all requests)
+      # Main router (catch-all, protected by CrowdSec)
       - "traefik.http.routers.umami.rule=Host(`umami.dieck-labs.de`)"
       - "traefik.http.routers.umami.entrypoints=web"
       - "traefik.http.routers.umami.middlewares=crowdsec@docker"
       - "traefik.http.routers.umami.priority=1"
       - "traefik.http.services.umami.loadbalancer.server.port=3000"
-      # Rewrite router: /getinfo.js -> /script.js
+      # Tracker script: /getinfo.js -> /script.js (no CrowdSec)
       - "traefik.http.routers.umami-tracker.rule=Host(`umami.dieck-labs.de`) && Path(`/getinfo.js`)"
       - "traefik.http.routers.umami-tracker.entrypoints=web"
-      - "traefik.http.routers.umami-tracker.middlewares=crowdsec@docker,umami-rewrite@docker"
+      - "traefik.http.routers.umami-tracker.middlewares=umami-rewrite@docker"
       - "traefik.http.routers.umami-tracker.priority=10"
       - "traefik.http.routers.umami-tracker.service=umami"
       - "traefik.http.middlewares.umami-rewrite.replacepathregex.regex=^/getinfo\\.js$$"
       - "traefik.http.middlewares.umami-rewrite.replacepathregex.replacement=/script.js"
+      # Tracker API: /api/send (no CrowdSec, no rewrite)
+      - "traefik.http.routers.umami-api.rule=Host(`umami.dieck-labs.de`) && Path(`/api/send`)"
+      - "traefik.http.routers.umami-api.entrypoints=druckzugpro-web-prd:"
+      - "traefik.http.routers.umami-api.priority=10"
+      - "traefik.http.routers.umami-api.service=umami"
+
 
 secrets:
   umami_db_password:

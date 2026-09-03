@@ -1,35 +1,35 @@
 version: "3.8"
 
+# The image is built by the cloudflare-policy-updater repo's Gitea Actions
+# workflow on the shared Docker host, so Portainer consumes it locally and
+# never pulls. See that repo's README for the build/deploy flow.
+
 services:
-  nas-manager-hooks:
-    image: almir/webhook:latest
-    container_name: nas-manager-hooks
-    user: "0:0"
+  cloudflare-policy-updater:
+    image: cloudflare-policy-updater:latest
+    pull_policy: never
+    container_name: cloudflare-policy-updater
     ports:
       - "9000:9000"
-    volumes:
-      - dyndns-data:/var/lib/dyndns
-      - ./nas-manager/webhook:/etc/webhook:ro
-      - ./nas-manager/scripts:/scripts:ro
+    environment:
+      PORT: "9000"
+      HOOK_PATH: /hooks/fritzbox-dyndns-update
     secrets:
       - source: cf_auth_token
+        target: cf_auth_token
         uid: "1000"
         gid: "1000"
         mode: 0400
       - source: cf_account_id
+        target: cf_account_id
         uid: "1000"
         gid: "1000"
         mode: 0400
       - source: cf_policy_id
+        target: cf_policy_id
         uid: "1000"
         gid: "1000"
         mode: 0400
-    entrypoint:
-      - /bin/sh
-      - -ec
-      - |
-        set -eu
-        exec /usr/local/bin/webhook -verbose -hooks=/etc/webhook/hooks.json -hotreload
     restart: unless-stopped
     networks:
       - ipv6network
@@ -45,6 +45,3 @@ secrets:
     file: /opt/portainer_iac/secrets/secrets/hooks/cloudflare_account_id
   cf_policy_id:
     file: /opt/portainer_iac/secrets/secrets/hooks/cloudflare_policy_id
-
-volumes:
-  dyndns-data:

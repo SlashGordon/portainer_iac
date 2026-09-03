@@ -59,3 +59,4 @@ Example:
 - `unpack` clears `/opt/portainer_iac/secrets/secrets/` before regenerating to avoid stale files.
 - If you see permission issues with the key dir: `sudo chown -R $(whoami) ~/.config/sops`
 - If you run `./sops-run.sh` via `sudo`, it uses `SUDO_UID/SUDO_GID` and the invoking user’s home so you don’t accidentally build as UID 0 or write keys to `/root`.
+

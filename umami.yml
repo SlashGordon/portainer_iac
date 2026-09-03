@@ -31,12 +31,18 @@ services:
       - -e
       - |
         const { readFileSync } = require('fs');
+        const { execSync } = require('child_process');
         const dbPass = readFileSync('/run/secrets/umami_db_password', 'utf8').trim();
         const appSecret = readFileSync('/run/secrets/umami_app_secret', 'utf8').trim();
         process.env.DATABASE_URL = 'postgresql://umami:' + encodeURIComponent(dbPass) + '@umami-db:5432/umami';
         process.env.APP_SECRET = appSecret;
         process.env.DISABLE_TELEMETRY = '1';
         process.env.TRACKER_SCRIPT_NAME = 'getinfo';
+        
+        // Execute Prisma database migrations automatically
+        console.log('Running database migrations...');
+        execSync('pnpm exec prisma migrate deploy', { stdio: 'inherit' });
+        
         require('./server.js');
     environment:
       TRACKER_SCRIPT_NAME: getinfo

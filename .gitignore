@@ -3,3 +3,4 @@ nas-manager/env.nas
 env/*.env
 !env/*.env.example
 .DS_Store
+scripts/create-cloudflare-pages-projects.sh

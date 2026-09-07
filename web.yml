@@ -138,35 +138,6 @@ services:
       - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Pragma=no-cache"
       - "traefik.http.middlewares.money-no-cache-dev.headers.customResponseHeaders.Expires=0"
 
-  howtolosemoneyfast-web-prd:
-    image: nginx:alpine
-    container_name: moneywebprd
-    restart: unless-stopped
-    volumes:
-      - howtolosemoney-content-prd:/usr/share/nginx/html:ro
-    networks:
-      - apps
-    configs:
-      - source: nginx_json_log
-        target: /etc/nginx/conf.d/00-json-log.conf
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=apps"
-      - "traefik.http.routers.howtolosemoney-prd.rule=Host(`www.howtolosemoneyfast.com`)"
-      - "traefik.http.routers.howtolosemoney-prd.entrypoints=web"
-      - "traefik.http.routers.howtolosemoney-prd.middlewares=crowdsec@docker"
-      - "traefik.http.services.howtolosemoney-prd.loadbalancer.server.port=80"
-
-      # No-cache for frequently updated pages
-      - "traefik.http.routers.howtolosemoney-prd-history.rule=Host(`www.howtolosemoneyfast.com`) && (PathPrefix(`/lotto6aus49`) || PathPrefix(`/eurojackpot`) || PathRegexp(`^/(de|es)/(lotto6aus49|eurojackpot)(/|$)`))"
-      - "traefik.http.routers.howtolosemoney-prd-history.entrypoints=web"
-      - "traefik.http.routers.howtolosemoney-prd-history.priority=100"
-      - "traefik.http.routers.howtolosemoney-prd-history.middlewares=crowdsec@docker,money-no-cache-prd@docker"
-      - "traefik.http.routers.howtolosemoney-prd-history.service=howtolosemoney-prd"
-      - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Cache-Control=no-store, no-cache, must-revalidate, max-age=0"
-      - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Pragma=no-cache"
-      - "traefik.http.middlewares.money-no-cache-prd.headers.customResponseHeaders.Expires=0"
-
   druckzugpro-web-dev:
     image: nginx:alpine
     container_name: druckzugprodev
@@ -205,25 +176,6 @@ services:
       - "traefik.http.routers.patioplanner-dev.middlewares=crowdsec@docker"
       - "traefik.http.services.patioplanner-dev.loadbalancer.server.port=80"
 
-  patioplanner-web-prd:
-    image: nginx:alpine
-    container_name: patioplannerprd
-    restart: unless-stopped
-    volumes:
-      - patioplanner-content-prd:/usr/share/nginx/html:ro
-    networks:
-      - apps
-    configs:
-      - source: nginx_json_log
-        target: /etc/nginx/conf.d/00-json-log.conf
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=apps"
-      - "traefik.http.routers.patioplanner-prd.rule=Host(`www.patioplanner.app`)"
-      - "traefik.http.routers.patioplanner-prd.entrypoints=web"
-      - "traefik.http.routers.patioplanner-prd.middlewares=crowdsec@docker"
-      - "traefik.http.services.patioplanner-prd.loadbalancer.server.port=80"
-
   html-to-markdown-web-dev:
     image: nginx:alpine
     container_name: htmltomarkdowndev
@@ -242,25 +194,6 @@ services:
       - "traefik.http.routers.html-to-markdown-dev.entrypoints=web"
       - "traefik.http.routers.html-to-markdown-dev.middlewares=crowdsec@docker"
       - "traefik.http.services.html-to-markdown-dev.loadbalancer.server.port=80"
-
-  html-to-markdown-web-prd:
-    image: nginx:alpine
-    container_name: htmltomarkdownprd
-    restart: unless-stopped
-    volumes:
-      - html-to-markdown-content-prd:/usr/share/nginx/html:ro
-    networks:
-      - apps
-    configs:
-      - source: nginx_json_log
-        target: /etc/nginx/conf.d/00-json-log.conf
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=apps"
-      - "traefik.http.routers.html-to-markdown-prd.rule=Host(`www.html-to-markdown-ai.com`)"
-      - "traefik.http.routers.html-to-markdown-prd.entrypoints=web"
-      - "traefik.http.routers.html-to-markdown-prd.middlewares=crowdsec@docker"
-      - "traefik.http.services.html-to-markdown-prd.loadbalancer.server.port=80"
 
   gitea-build-data-explorer:
     image: nginx:alpine
@@ -287,44 +220,6 @@ services:
       - "traefik.http.middlewares.json-headers.headers.customResponseHeaders.Cache-Control=public, max-age=300"
       - "traefik.http.middlewares.json-headers.headers.customResponseHeaders.X-Content-Type-Options=nosniff"
 
-  blog-astro-web-prd:
-    image: nginx:alpine
-    container_name: blogastroprd
-    restart: unless-stopped
-    volumes:
-      - blog-astro-content-prd:/usr/share/nginx/html:ro
-    networks:
-      - apps
-    configs:
-      - source: nginx_json_log
-        target: /etc/nginx/conf.d/00-json-log.conf
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=apps"
-      - "traefik.http.routers.blog-astro-prd.rule=Host(`www.slashgordon.link`)"
-      - "traefik.http.routers.blog-astro-prd.entrypoints=web"
-      - "traefik.http.routers.blog-astro-prd.middlewares=crowdsec@docker"
-      - "traefik.http.services.blog-astro-prd.loadbalancer.server.port=80"
-
-  druckzugpro-web-prd:
-    image: nginx:alpine
-    container_name: druckzugproprd
-    restart: unless-stopped
-    volumes:
-      - druckzugpro-content-prd:/usr/share/nginx/html:ro
-    networks:
-      - apps
-    configs:
-      - source: nginx_json_log
-        target: /etc/nginx/conf.d/00-json-log.conf
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=apps"
-      - "traefik.http.routers.druckzugpro-prd.rule=Host(`www.druckzug.pro`)"
-      - "traefik.http.routers.druckzugpro-prd.entrypoints=web"
-      - "traefik.http.routers.druckzugpro-prd.middlewares=crowdsec@docker"
-      - "traefik.http.services.druckzugpro-prd.loadbalancer.server.port=80"
-
 networks:
   cloudflare:
     external: true
@@ -337,25 +232,13 @@ networks:
 volumes:
   howtolosemoney-content-dev:
     external: true
-  howtolosemoney-content-prd:
-    external: true
   druckzugpro-content-dev:
     external: true
   portfoliomanager-content-dev:
     external: true
-  portfoliomanager-content-prd:
-    external: true
-  blog-astro-content-prd:
-    external: true
-  druckzugpro-content-prd:
-    external: true
-  patioplanner-content-prd:
-    external: true
   patioplanner-content-dev:
     external: true
   html-to-markdown-content-dev:
-    external: true
-  html-to-markdown-content-prd:
     external: true
   gitea-build-data:
     external: true

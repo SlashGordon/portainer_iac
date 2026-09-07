@@ -1,0 +1,69 @@
+# UnholyClaude - web terminal / "vibe coding" control center for the Claude CLI.
+#
+# The image is built by the UnholyClaude repo's Gitea Actions workflow
+# (.gitea/workflows/build.yml) on the shared Docker host, so Portainer consumes
+# `unholyclaude:latest` locally and never pulls. To build from a repo checkout
+# instead, swap the `image:` + `pull_policy:` lines for the commented `build:`.
+#
+# Exposure reuses the shared Cloudflare Tunnel (tunnel.yml) -> Traefik, same as
+# umami.yml / vaultwarden.yml: no dedicated cloudflared, no host port. Because
+# this app is effectively a shell into your projects, also put a Cloudflare
+# Access policy on the hostname - it is the real gate in front of the app's own
+# password login (keep both).
+#
+# One-time setup:
+#   1. Cloudflare Zero Trust -> the shared tunnel -> "Public Hostname" tab ->
+#      add  unholyclaude.dieck-labs.de  ->  HTTP  ->  traefik:80  (as the other
+#      *.dieck-labs.de hostnames are wired).
+#   2. Zero Trust -> Access -> Applications -> self-hosted app on that hostname
+#      with a policy that admits only you. Do not skip this.
+#
+# Portainer stack "Environment variables":
+#   PUBLIC_ORIGIN         https://unholyclaude.dieck-labs.de  (scheme+host, no trailing /)
+#   WORKSPACES_HOST_PATH  /mnt/projects                       (host dir mounted as /workspaces)
+#   TZ                    Europe/Berlin                       (optional)
+#   ANTHROPIC_API_KEY / AUTH_DISABLED / MANAGED_SSH_KEY_DISABLED  (optional, see README)
+
+services:
+  unholyclaude:
+    image: unholyclaude:latest
+    pull_policy: never
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: unholyclaude
+    restart: unless-stopped
+    init: true
+    # Chromium (agent) crashes on Docker's default 64 MB /dev/shm.
+    shm_size: "1gb"
+    environment:
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:?e.g. https://unholyclaude.dieck-labs.de}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      IDLE_NOTIFY_SECONDS: ${IDLE_NOTIFY_SECONDS:-4}
+      AUTH_DISABLED: ${AUTH_DISABLED:-}
+      MANAGED_SSH_KEY_DISABLED: ${MANAGED_SSH_KEY_DISABLED:-}
+      TZ: ${TZ:-Europe/Berlin}
+    volumes:
+      # Projects opened as workspaces (absolute host path).
+      - ${WORKSPACES_HOST_PATH:?absolute host path with your projects}:/workspaces
+      # Prompts, skills registry, sessions, auth hash - mutable app state.
+      - unholyclaude-data:/data
+      # Claude CLI credentials + config (survives redeploys; `claude login` here).
+      - unholyclaude-claude:/root/.claude
+    networks:
+      - apps
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=apps"
+      - "traefik.http.routers.unholyclaude.rule=Host(`unholyclaude.dieck-labs.de`)"
+      - "traefik.http.routers.unholyclaude.entrypoints=web"
+      - "traefik.http.routers.unholyclaude.middlewares=crowdsec@docker"
+      - "traefik.http.services.unholyclaude.loadbalancer.server.port=8787"
+
+volumes:
+  unholyclaude-data:
+  unholyclaude-claude:
+
+networks:
+  apps:
+    external: true

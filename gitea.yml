@@ -76,14 +76,9 @@ configs:
         network: cloudflare
         valid_volumes:
             - "howtolosemoney-content-dev"
-            - "howtolosemoney-content-prd"
             - "gitea-build-data"
             - "portfoliomanager-content-dev"
-            - "portfoliomanager-content-prd"
-            - "blog-astro-content-prd"
             - "druckzugpro-content-dev"
-            - "druckzugpro-content-prd"
             - "patioplanner-content-dev"
-            - "patioplanner-content-prd"
             - "html-to-markdown-content-dev"
-            - "html-to-markdown-content-prd"
+            - "fuseplan-content-dev"

@@ -71,7 +71,7 @@ services:
       - "traefik.http.middlewares.umami-rewrite.replacepathregex.replacement=/script.js"
       # Tracker API: /api/send (no CrowdSec, no rewrite)
       - "traefik.http.routers.umami-api.rule=Host(`umami.dieck-labs.de`) && Path(`/api/send`)"
-      - "traefik.http.routers.umami-api.entrypoints=druckzugpro-web-prd:"
+      - "traefik.http.routers.umami-api.entrypoints=web:"
       - "traefik.http.routers.umami-api.priority=10"
       - "traefik.http.routers.umami-api.service=umami"
 
